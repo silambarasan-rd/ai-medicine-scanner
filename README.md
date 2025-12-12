@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 💊 MathirAI
 
-## Getting Started
+> **An intelligent medicine identifier powered by Next.js and Google Gemini Vision.**
 
-First, run the development server:
+MediScan AI transforms your device into a smart medical assistant. By simply pointing your camera at a medicine box or pill bottle, the application uses multimodal AI to identify the drug, explain its purpose, and provide critical safety warnings.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+![Project Status](https://img.shields.io/badge/Status-Active_Development-green)
+![Tech Stack](https://img.shields.io/badge/Stack-Next.js_14_|_Gemini_AI_|_Tailwind-blue)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🌟 Key Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **👁️ AI Vision-to-Text:** Uses Google Gemini 1.5 Flash to "see" and identify medicines from images, handling blurry text and complex packaging better than traditional OCR.
+- **⚡ Auto-Capture:** Smart detection automatically captures the medicine when the camera is steady.
+- **🛡️ Safety & Interaction Checks:**
+  - 🚗 **Driving Safety:** Instantly warns if the medicine causes drowsiness.
+  - 🍷 **Alcohol Warning:** Flags interactions with alcohol.
+  - 🕒 **Usage Timing:** Suggests when to take the medication (e.g., "After meals").
+- **🔊 Accessibility Mode:** Built-in Text-to-Speech (TTS) to read results aloud for visually impaired users.
+- **📱 PWA Ready:** Designed to work seamlessly on mobile browsers.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ Tech Stack
 
-## Learn More
+- **Framework:** [Next.js](https://nextjs.org/) (App Router)
+- **Language:** TypeScript
+- **AI Model:** [Google Gemini 1.5 Flash](https://ai.google.dev/) (via Generative AI SDK)
+- **Styling:** Tailwind CSS
+- **HTTP Client:** Axios
 
-To learn more about Next.js, take a look at the following resources:
+## 🚀 Getting Started
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Prerequisites
+- Node.js 18+ installed.
+- A Google Cloud API Key with access to **Gemini API**. [Get it here](https://aistudio.google.com/).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Installation
 
-## Deploy on Vercel
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/mediscan-ai.git
+   cd mediscan-ai
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2. **Install dependencies**:
+    ```bash
+    npm install
+    ```
+3. **Configure Environment Variables:**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+    Create a .env.local file in the root directory:
+
+    ```Env
+    GOOGLE_API_KEY=your_google_gemini_api_key_here
+    ```
+
+4. **Run the development server**:
+    ```bash
+    npm run dev # without SSL
+    npm run dev:ssl # with SSL
+    ```
+
+5. **Open locally:**
+
+    Navigate to http://localhost:3000.
+    
+    **Note on Mobile Testing:** Camera access requires HTTPS. To test on your phone, use `npm run dev -- --experimental-https` or tunnel via [Ngrok](https://www.google.com/url?sa=E&q=https%3A%2F%2Fngrok.com%2F).
+
+## 📱 How It Works
+1. **Capture:** The app captures a frame from the video feed (Auto or Manual).
+2. **Process:** The image is converted to Base64 and sent to the secure API route.
+3. **Analyze:** Google Gemini Vision analyzes the image context, text, and packaging.
+4. **Response:** The AI returns a structured JSON containing the name, purpose, and specific safety flags.
+5. **Display:** The UI renders the information and reads it aloud if audio mode is on.
+
+## 🛣️ Roadmap
+
+- [x] Vision-based identification
+- [x] Safety Badges (Driving/Alcohol)
+- [x] Auto-Capture Toggle
+- [ ] **Drug Interaction Checker**: Scan multiple meds to check for conflicts.
+- [ ] **Price Comparison**: Check generic alternatives.
+- [ ] **React Native Mobile App**: Porting to native iOS/Android.
+
+## ⚠️ Medical Disclaimer
+
+**IMPORTANT:** This application is for **educational and demonstration purposes only**.
+
+- **Do not** rely on this app for medical advice, diagnosis, or treatment.
+- The AI may produce inaccurate or incomplete information (hallucinations).
+- Always verify medicine details with a certified pharmacist or doctor.
+- Always read the official label and leaflet provided with the medicine.
+
+-------------------------------------------------------------------------------
+Made with ❤️ using Next.js and Google Gemini.

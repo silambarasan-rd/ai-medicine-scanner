@@ -1,9 +1,29 @@
 {
-  "name": "medicine-scanner",
-  "version": "0.1.0",
-  "private": true,
+  "name": "mathir-ai",
+  "version": "1.0.0",
+  "description": "An AI-powered PWA that identifies medicines via camera using Google Gemini Vision. Features include auto-capture, safety warnings (driving/alcohol), and accessibility text-to-speech.",
+  "keywords": [
+    "nextjs",
+    "react",
+    "typescript",
+    "ai",
+    "google-gemini",
+    "computer-vision",
+    "healthcare",
+    "medicine-scanner",
+    "accessibility",
+    "pwa"
+  ],
+  "author": "Silambarasan R <silambu1821944@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "repository": {
+    "url": "https://github.com/silambarasan-rd/ai-medicine-scanner",
+    "type": "public"
+  },
   "scripts": {
     "dev": "next dev",
+    "dev:ssl": "next dev --experimental-https",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -13,8 +33,7 @@
     "axios": "^1.13.2",
     "next": "16.0.5",
     "react": "19.2.0",
-    "react-dom": "19.2.0",
-    "tesseract.js": "^6.0.1"
+    "react-dom": "19.2.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

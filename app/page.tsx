@@ -1,59 +1,24 @@
 'use client';
 
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import Tesseract from 'tesseract.js';
 import axios from 'axios';
 
 // --- Types ---
 interface MedicineData {
   brand_name: string;
-  purpose: string[];
-  indications: string[];
-  active_ingredient: string[];
+  purpose: string;
+  active_ingredient: string;
+  warnings: string[];
+  usage_timing: string;
+  safety_flags: {
+    drive: boolean;
+    alcohol: boolean;
+  };
 }
 
 interface ScanResult {
-  detectedText: string;
   medicineInfo: MedicineData | null;
 }
-
-// --- Helper: Clean the OCR text to find a likely medicine name ---
-const extractMedicineName = (text: string): string | null => {
-  // 1. Split by lines to process structured text
-  const lines = text.split('\n');
-  
-  // 2. Words to ignore (common on packaging)
-  const ignoreList = [
-    'tablet', 'tablets', 'capsule', 'capsules', 'mg', 'g', 'ml', 
-    'exp', 'date', 'batch', 'mfg', 'store', 'dosage', 'keep', 
-    'reach', 'children', 'pharmacy', 'ltd', 'pvt', 'inc', 'tm', 'r'
-  ];
-
-  let bestCandidate = '';
-  let maxLength = 0;
-
-  lines.forEach((line) => {
-    // Clean symbols and numbers
-    const cleanLine = line.replace(/[^a-zA-Z\s]/g, '').trim();
-    const words = cleanLine.split(/\s+/);
-
-    words.forEach((word) => {
-      const lowerWord = word.toLowerCase();
-      // Logic: Medicine names are usually long, not in the ignore list, and often capitalized
-      if (
-        word.length > 4 && 
-        !ignoreList.includes(lowerWord)
-      ) {
-        if (word.length > maxLength) {
-          maxLength = word.length;
-          bestCandidate = word;
-        }
-      }
-    });
-  });
-
-  return bestCandidate || null;
-};
 
 export default function MedicineScanner() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -63,6 +28,7 @@ export default function MedicineScanner() {
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isAutoCapture, setIsAutoCapture] = useState(true);
 
   // 1. Initialize Camera
   useEffect(() => {
@@ -97,34 +63,10 @@ export default function MedicineScanner() {
     };
   }, []);
 
-  // 2. Fetch Data from OpenFDA
-  // const fetchMedicineData = async (queryName: string): Promise<MedicineData | null> => {
-  //   try {
-  //     // OpenFDA API for Drug Labels
-  //     const response = await axios.get(
-  //       `https://api.fda.gov/drug/label.json?search=openfda.brand_name:"${queryName}"&limit=1`
-  //     );
-
-  //     const result = response.data.results?.[0];
-      
-  //     if (!result) return null;
-
-  //     return {
-  //       brand_name: result.openfda?.brand_name?.[0] || queryName,
-  //       purpose: result.purpose || ['Purpose not specified'],
-  //       indications: result.indications_and_usage || ['Usage details not available'],
-  //       active_ingredient: result.active_ingredient || ['Unknown']
-  //     };
-  //   } catch (err) {
-  //     console.warn("API Lookup failed", err);
-  //     return null;
-  //   }
-  // };
-
-  // 2. Fetch Data from our AI API
-  const fetchMedicineDataAI = async (ocrText: string): Promise<MedicineData | null> => {
+  // 3. Fetch Data from our AI API
+  const fetchMedicineDataAI = async (base64Image: string): Promise<MedicineData | null> => {
     try {
-      const response = await axios.post('/api/identify', { text: ocrText });
+      const response = await axios.post('/api/identify', { image: base64Image });
       const data = response.data;
 
       if (data.error) {
@@ -132,12 +74,14 @@ export default function MedicineScanner() {
         return null;
       }
 
-      // Map AI response to our state structure
+      // Return AI response directly
       return {
         brand_name: data.brand_name,
-        purpose: [data.purpose], // Wrap in array to match previous structure
-        indications: [data.warnings], // We'll map warnings to indications
-        active_ingredient: [data.active_ingredient]
+        purpose: data.purpose,
+        active_ingredient: data.active_ingredient,
+        warnings: Array.isArray(data.warnings) ? data.warnings : [data.warnings],
+        usage_timing: data.usage_timing,
+        safety_flags: data.safety_flags || { drive: true, alcohol: true }
       };
     } catch (err) {
       console.error("AI Request Failed", err);
@@ -145,7 +89,7 @@ export default function MedicineScanner() {
     }
   };
 
-  // 3. Handle Scanning
+  // 4. Handle Scanning
   const handleScan = useCallback(async () => {
     if (!videoRef.current || !canvasRef.current) return;
     
@@ -165,34 +109,19 @@ export default function MedicineScanner() {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     try {
-      // Perform OCR
-      const { data: { text } } = await Tesseract.recognize(
-        canvas,
-        'eng',
-        { logger: (m) => console.log(m) } // Optional: see progress in console
-      );
+      // Convert canvas to base64 JPEG
+      const dataUrl = canvas.toDataURL('image/jpeg');
+      // Strip the "data:image/jpeg;base64," prefix
+      const base64Image = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
 
-      console.log("Raw Text sending to AI:", text);
-
-      // const identifiedName = extractMedicineName(text);
-
-      // if (!identifiedName) {
-      //   throw new Error("Could not detect a clear text. Please try again.");
-      // }
-
-      // if (text.length < 5) {
-      //   throw new Error("No readable text found. Try again.");
-      // }
-
-      // Fetch details
-      const medicineDetails = await fetchMedicineDataAI(text);
+      // Fetch details from AI API
+      const medicineDetails = await fetchMedicineDataAI(base64Image);
 
       if (!medicineDetails) {
-         throw new Error("AI could not identify a medicine in this text.");
+         throw new Error("AI could not identify a medicine in this image.");
       }
 
       setScanResult({
-        detectedText: medicineDetails.brand_name,
         medicineInfo: medicineDetails
       });
 
@@ -204,9 +133,48 @@ export default function MedicineScanner() {
     }
   }, []);
 
+  // 2. Auto-Capture Effect
+  useEffect(() => {
+    if (!isAutoCapture || !isCameraReady || isScanning) return;
+
+    const interval = setInterval(() => {
+      if (!isScanning) {
+        handleScan();
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [isAutoCapture, isCameraReady, isScanning, handleScan]);  
+
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col items-center py-10 px-4">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">AI Medicine Detector</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">💊 MathirAI</h1>
+
+      {/* Toggle Switch for Auto/Manual Capture */}
+      <div className="mb-6 flex items-center gap-3 bg-white px-4 py-3 rounded-lg shadow-md border border-gray-200">
+        <span className={`text-sm font-medium ${
+          isAutoCapture ? 'text-blue-600' : 'text-gray-600'
+        }`}>
+          Auto
+        </span>
+        <button
+          onClick={() => setIsAutoCapture(!isAutoCapture)}
+          className={`relative inline-flex items-center h-7 w-14 rounded-full transition-colors ${
+            isAutoCapture ? 'bg-blue-600' : 'bg-gray-300'
+          }`}
+        >
+          <span
+            className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+              isAutoCapture ? 'translate-x-7' : 'translate-x-1'
+            }`}
+          />
+        </button>
+        <span className={`text-sm font-medium ${
+          !isAutoCapture ? 'text-blue-600' : 'text-gray-600'
+        }`}>
+          Manual
+        </span>
+      </div>
 
       {/* Camera Viewport */}
       <div className="relative w-full max-w-md aspect-[3/4] bg-black rounded-xl overflow-hidden shadow-2xl">
@@ -245,60 +213,97 @@ export default function MedicineScanner() {
           </div>
         )}
 
-        <button
-          onClick={handleScan}
-          disabled={!isCameraReady || isScanning}
-          className={`
-            w-full py-4 rounded-full font-bold text-lg shadow-md transition-all
-            ${isScanning || !isCameraReady 
-              ? 'bg-gray-400 cursor-not-allowed text-gray-200' 
-              : 'bg-blue-600 hover:bg-blue-700 text-white active:scale-95'
-            }
-          `}
-        >
-          {isScanning ? 'Scanning...' : 'Capture & Identify'}
-        </button>
+        {!isAutoCapture && (
+          <button
+            onClick={handleScan}
+            disabled={!isCameraReady || isScanning}
+            className={`
+              w-full py-4 rounded-full font-bold text-lg shadow-md transition-all
+              ${isScanning || !isCameraReady 
+                ? 'bg-gray-400 cursor-not-allowed text-gray-200' 
+                : 'bg-blue-600 hover:bg-blue-700 text-white active:scale-95'
+              }
+            `}
+          >
+            {isScanning ? 'Scanning...' : 'Capture & Identify'}
+          </button>
+        )}
+
+        {isAutoCapture && (
+          <div className="w-full text-center text-sm text-gray-600 py-4">
+            {isScanning ? '🔄 Scanning...' : '✓ Auto-capture enabled'}
+          </div>
+        )}
       </div>
 
       {/* Results Section */}
-      {scanResult && (
+      {scanResult && scanResult.medicineInfo && (
         <div className="mt-8 w-full max-w-md bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
           <div className="bg-blue-50 px-6 py-4 border-b border-blue-100">
-            <span className="text-xs font-semibold text-blue-500 uppercase tracking-wide">Detected Text</span>
-            <p className="text-xl font-bold text-gray-800 capitalize">{scanResult.detectedText}</p>
+            <span className="text-xs font-semibold text-blue-500 uppercase tracking-wide">Medicine Identified</span>
+            <p className="text-xl font-bold text-gray-800 capitalize">{scanResult.medicineInfo.brand_name}</p>
           </div>
 
           <div className="p-6 space-y-4">
-            {scanResult.medicineInfo ? (
-              <>
-                <div>
-                  <h3 className="font-semibold text-gray-700">Purpose</h3>
-                  <p className="text-gray-600 text-sm mt-1 leading-relaxed">
-                    {scanResult.medicineInfo.purpose[0]}
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="font-semibold text-gray-700">Active Ingredient</h3>
-                  <p className="text-gray-600 text-sm mt-1">
-                    {scanResult.medicineInfo.active_ingredient.join(', ')}
-                  </p>
-                </div>
+            {/* Usage Timing - Prominent Display */}
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+              <h3 className="font-bold text-blue-900 text-sm uppercase tracking-wide mb-1">How to Take</h3>
+              <p className="text-blue-800 font-semibold text-base">
+                {scanResult.medicineInfo.usage_timing}
+              </p>
+            </div>
 
-                <div className="bg-yellow-50 p-3 rounded text-xs text-yellow-800 border border-yellow-200">
-                  ⚠️ Always consult a doctor. This AI information is for educational purposes only.
+            {/* Safety Flags */}
+            <div className="flex gap-2">
+              {!scanResult.medicineInfo.safety_flags.drive && (
+                <div className="flex-1 bg-red-100 border border-red-300 rounded-lg p-3 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">🚗</div>
+                    <p className="text-xs font-bold text-red-700 uppercase">Do Not Drive</p>
+                  </div>
                 </div>
-              </>
-            ) : (
-              <div className="text-center py-4">
-                <p className="text-gray-500">
-                  Name detected, but no details found in the FDA database.
-                </p>
-                <p className="text-xs text-gray-400 mt-2">
-                  Try identifying the active ingredient manually.
-                </p>
+              )}
+              {!scanResult.medicineInfo.safety_flags.alcohol && (
+                <div className="flex-1 bg-red-100 border border-red-300 rounded-lg p-3 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">🍷</div>
+                    <p className="text-xs font-bold text-red-700 uppercase">No Alcohol</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-gray-700">Purpose</h3>
+              <p className="text-gray-600 text-sm mt-1 leading-relaxed">
+                {scanResult.medicineInfo.purpose}
+              </p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-gray-700">Active Ingredient</h3>
+              <p className="text-gray-600 text-sm mt-1">
+                {scanResult.medicineInfo.active_ingredient}
+              </p>
+            </div>
+
+            {scanResult.medicineInfo.warnings.length > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <h3 className="font-semibold text-yellow-900 text-sm mb-2">⚠️ Warnings</h3>
+                <ul className="text-xs text-yellow-800 space-y-1">
+                  {scanResult.medicineInfo.warnings.map((warning, idx) => (
+                    <li key={idx} className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>{warning}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
+
+            <div className="bg-blue-50 p-3 rounded text-xs text-blue-800 border border-blue-200">
+              ℹ️ Always consult a doctor. This AI information is for educational purposes only.
+            </div>
           </div>
         </div>
       )}

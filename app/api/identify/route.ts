@@ -6,41 +6,36 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
 
 export async function POST(req: Request) {
   try {
-    const { text } = await req.json();
+    const { image } = await req.json();
 
-    if (!text) {
-      return NextResponse.json({ error: "No text provided" }, { status: 400 });
+    if (!image) {
+      return NextResponse.json({ error: "No image provided" }, { status: 400 });
     }
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     // The Prompt: We teach the AI to be a pharmacist and return strict JSON
-    const prompt = `
-      I have extracted the following text from a medicine box using OCR. It might be messy or contain typos.
-      
-      EXTRACTED TEXT:
-      "${text}"
+    const prompt = `Identify the medicine in this image. Return a JSON object with the following keys:
+- brand_name: The name of the medicine
+- purpose: What it treats (1 short sentence)
+- active_ingredient: The active ingredient(s)
+- warnings: A brief usage warning
+- usage_timing: When to take it (e.g., "after meal", "before bed")
 
-      TASK:
-      1. Identify the medicine name from the text.
-      2. Explain its primary purpose (what it treats).
-      3. List the active ingredients if found (or infer them based on the brand name).
-      4. Provide a very brief usage warning.
+Return ONLY a raw JSON object (no markdown formatting). If you cannot identify a medicine, return:
+{ "error": "Could not identify medicine" }`;
 
-      OUTPUT FORMAT:
-      Return ONLY a raw JSON object (no markdown formatting) with these keys:
+    const result = await model.generateContent([
       {
-        "brand_name": "String",
-        "purpose": "String (1 short sentence)",
-        "active_ingredient": "String",
-        "warnings": "String"
+        text: prompt
+      },
+      {
+        inlineData: {
+          mimeType: "image/jpeg",
+          data: image
+        }
       }
-
-      If you strictly cannot identify a medicine in the text, return:
-      { "error": "Could not identify medicine" }
-    `;
-
-    const result = await model.generateContent(prompt);
+    ]);
     const response = await result.response;
     let jsonString = response.text();
 
