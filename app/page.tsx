@@ -30,6 +30,10 @@ export default function MedicineScanner() {
   const [error, setError] = useState<string | null>(null);
   const [isAutoCapture, setIsAutoCapture] = useState(true);
 
+  // Touch tracking state for Bottom Sheet Modal
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
   // 1. Initialize Camera
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -74,12 +78,13 @@ export default function MedicineScanner() {
         return null;
       }
 
-      // Return AI response directly
+      // Map API response to MedicineData interface
       return {
-        brand_name: data.brand_name,
-        purpose: data.purpose,
-        active_ingredient: data.active_ingredient,
-        warnings: Array.isArray(data.warnings) ? data.warnings : [data.warnings],
+        brand_name: data.brand_name || "Unknown Medicine",
+        purpose: Array.isArray(data.purpose) ? data.purpose : [data.purpose].filter(Boolean),
+        // Map 'indications' to 'warnings' with fallback to 'warnings' field
+        warnings: Array.isArray(data.indications) ? data.indications : (Array.isArray(data.warnings) ? data.warnings : []),
+        active_ingredient: data.active_ingredient ? data.active_ingredient : ['See label for details'],
         usage_timing: data.usage_timing,
         safety_flags: data.safety_flags || { drive: true, alcohol: true }
       };
@@ -221,13 +226,33 @@ export default function MedicineScanner() {
       {/* Bottom Sheet Modal for Results */}
       {scanResult && scanResult.medicineInfo && (
         <div className="absolute inset-0 z-50 bg-black/60 flex justify-center items-end">
-          <div className="w-full max-w-md rounded-t-3xl bg-white bottom-0 absolute p-6">
+          <div
+            className="w-full max-w-md rounded-t-3xl bg-white bottom-0 absolute p-6 pt-12"
+            onTouchStart={(e) => {
+              if(e.touches && e.touches.length > 0) {
+                setTouchStart(e.touches[0].clientY);
+              }
+            }}
+            onTouchEnd={(e) => {
+              if(e.changedTouches && e.changedTouches.length > 0) {
+                setTouchEnd(e.changedTouches[0].clientY);
+                if (touchStart !== null && (touchStart - e.changedTouches[0].clientY) < -75) {
+                  setScanResult(null);
+                }
+              }
+            }}
+          >
+            {/* Drag Handle */}
+            <div className="w-12 h-1.5 bg-gray-400 rounded-full absolute top-4 left-1/2 transform -translate-x-1/2"></div>
+
             <button
               aria-label="Close"
               onClick={() => setScanResult(null)}
-              className="absolute top-4 right-4 text-gray-700 hover:text-gray-900 text-2xl font-bold"
+              className="absolute top-4 right-4 bg-gray-200 rounded-full p-2 z-50 text-gray-700 hover:text-gray-900 text-3xl font-bold"
             >
-              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
             </button>
             <h2 className="text-xl font-bold text-gray-900 mb-3 capitalize">{scanResult.medicineInfo.brand_name}</h2>
             <div className="mb-4">
