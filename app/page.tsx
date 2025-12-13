@@ -23,12 +23,14 @@ interface ScanResult {
 export default function MedicineScanner() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isAutoCapture, setIsAutoCapture] = useState(true);
+  const prevIsAutoCaptureRef = useRef<boolean>(isAutoCapture);
 
   // Touch tracking state for Bottom Sheet Modal
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -68,10 +70,10 @@ export default function MedicineScanner() {
   }, []);
 
   // 3. Fetch Data from our AI API
-  const fetchMedicineDataAI = async (base64Image: string): Promise<MedicineData | null> => {
+  const fetchMedicineDataAI = async (base64Image: string, signal: AbortSignal): Promise<MedicineData | null> => {
     try {
-      const response = await axios.post('/api/identify', { image: base64Image });
-      const data = response.data;
+      const response = await axios.post('/api/identify', { image: base64Image }, { signal });
+      const data = response.data;      
 
       if (data.error) {
         console.warn(data.error);
@@ -89,6 +91,9 @@ export default function MedicineScanner() {
         safety_flags: data.safety_flags || { drive: true, alcohol: true }
       };
     } catch (err) {
+      if (axios.isCancel(err)) {
+        console.log("AI Request was canceled.");
+      }
       console.error("AI Request Failed", err);
       return null;
     }
@@ -101,6 +106,9 @@ export default function MedicineScanner() {
     setIsScanning(true);
     setError(null);
     setScanResult(null);
+
+    // Create a new AbortController for this scan
+    abortControllerRef.current = new AbortController();
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -120,8 +128,8 @@ export default function MedicineScanner() {
       const base64Image = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
 
       // Fetch details from AI API
-      const medicineDetails = await fetchMedicineDataAI(base64Image);
-
+      const medicineDetails = await fetchMedicineDataAI(base64Image, abortControllerRef.current.signal);
+      
       if (!medicineDetails) {
          throw new Error("AI could not identify a medicine in this image.");
       }
@@ -131,10 +139,14 @@ export default function MedicineScanner() {
       });
 
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
-      setError(errorMessage);
+      // Don't show an error if the request was intentionally canceled
+      if (!axios.isCancel(err)) {
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
+        setError(errorMessage);
+      }
     } finally {
       setIsScanning(false);
+      abortControllerRef.current = null;
     }
   }, []);
 
@@ -150,6 +162,20 @@ export default function MedicineScanner() {
 
     return () => clearInterval(interval);
   }, [isAutoCapture, isCameraReady, isScanning, handleScan, scanResult]);
+
+  // Effect to cancel scan when auto-capture is turned off
+  useEffect(() => {
+    // Check if the toggle was just switched from ON to OFF during a scan
+    if (prevIsAutoCaptureRef.current && !isAutoCapture && isScanning) {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        setIsScanning(false); // Reset scanning state immediately
+      }
+    }
+
+    // Update the ref to the current value for the next render
+    prevIsAutoCaptureRef.current = isAutoCapture;
+  }, [isAutoCapture, isScanning]);
 
   return (
     <main className="min-h-screen bg-black relative overflow-hidden">
@@ -209,7 +235,9 @@ export default function MedicineScanner() {
         )}
         {!isAutoCapture && (
           <button
-            onClick={handleScan}
+            onClick={() => {
+              handleScan()
+            }}
             disabled={!isCameraReady || isScanning}
             className={`w-full py-4 rounded-full font-bold text-lg shadow-md transition-all
               ${isScanning || !isCameraReady
