@@ -135,7 +135,7 @@ export default function MedicineScanner() {
 
   // 2. Auto-Capture Effect
   useEffect(() => {
-    if (!isAutoCapture || !isCameraReady || isScanning) return;
+    if (!isAutoCapture || !isCameraReady || isScanning || scanResult) return;
 
     const interval = setInterval(() => {
       if (!isScanning) {
@@ -144,83 +144,71 @@ export default function MedicineScanner() {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [isAutoCapture, isCameraReady, isScanning, handleScan]);  
+  }, [isAutoCapture, isCameraReady, isScanning, handleScan, scanResult]);
 
   return (
-    <main className="min-h-screen bg-gray-50 flex flex-col items-center py-10 px-4">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">💊 MathirAI</h1>
-
-      {/* Toggle Switch for Auto/Manual Capture */}
-      <div className="mb-6 flex items-center gap-3 bg-white px-4 py-3 rounded-lg shadow-md border border-gray-200">
-        <span className={`text-sm font-medium ${
-          isAutoCapture ? 'text-blue-600' : 'text-gray-600'
-        }`}>
-          Auto
-        </span>
-        <button
-          onClick={() => setIsAutoCapture(!isAutoCapture)}
-          className={`relative inline-flex items-center h-7 w-14 rounded-full transition-colors ${
-            isAutoCapture ? 'bg-blue-600' : 'bg-gray-300'
-          }`}
-        >
-          <span
-            className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-              isAutoCapture ? 'translate-x-7' : 'translate-x-1'
+    <main className="min-h-screen bg-black relative overflow-hidden">
+      {/* Header: Title & Toggle */}
+      <div className="absolute top-0 z-20 w-full bg-gradient-to-b from-black/70 to-transparent px-4 py-4 flex flex-col items-center">
+        <h1 className="text-3xl font-bold text-gray-100 mb-4">💊 MathirAI</h1>
+        <div className="flex items-center gap-3 bg-black/50 px-4 py-3 rounded-lg shadow-md border border-gray-700">
+          <span className={`text-sm font-medium ${
+            isAutoCapture ? 'text-blue-400' : 'text-gray-400'
+          }`}>Auto</span>
+          <button
+            onClick={() => setIsAutoCapture(!isAutoCapture)}
+            className={`relative inline-flex items-center h-7 w-14 rounded-full transition-colors ${
+              isAutoCapture ? 'bg-blue-600' : 'bg-gray-600'
             }`}
-          />
-        </button>
-        <span className={`text-sm font-medium ${
-          !isAutoCapture ? 'text-blue-600' : 'text-gray-600'
-        }`}>
-          Manual
-        </span>
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                isAutoCapture ? 'translate-x-7' : 'translate-x-1'
+              }`}
+            />
+          </button>
+          <span className={`text-sm font-medium ${
+            !isAutoCapture ? 'text-blue-400' : 'text-gray-400'
+          }`}>Manual</span>
+        </div>
       </div>
-
-      {/* Camera Viewport */}
-      <div className="relative w-full max-w-md aspect-[3/4] bg-black rounded-xl overflow-hidden shadow-2xl">
-        <video 
-          ref={videoRef} 
-          className="absolute inset-0 w-full h-full object-cover"
-          playsInline
-          muted
-        />
-        
-        {/* Scanning Overlay Effect */}
-        {isScanning && (
-          <div className="absolute inset-0 bg-white/20 z-10 animate-pulse flex items-center justify-center">
-            <span className="text-white font-semibold bg-black/50 px-4 py-2 rounded">Processing...</span>
-          </div>
-        )}
-
-        {!isCameraReady && !error && (
-          <div className="absolute inset-0 flex items-center justify-center text-white">
-            Initializing Camera...
-          </div>
-        )}
-
-        {/* Overlay Guide Box */}
-        <div className="absolute inset-0 border-2 border-white/50 m-8 rounded-lg pointer-events-none"></div>
-      </div>
-
-      {/* Hidden Canvas for Image Processing */}
+      {/* Fullscreen video */}
+      <video
+        ref={videoRef}
+        className="absolute inset-0 w-full h-full object-cover"
+        playsInline
+        muted
+      />
+      {/* Overlay scanning state */}
+      {isScanning && (
+        <div className="absolute inset-0 bg-white/20 z-10 animate-pulse flex items-center justify-center">
+          <span className="text-white font-semibold bg-black/50 px-4 py-2 rounded">Processing...</span>
+        </div>
+      )}
+      {/* Overlay initializing state */}
+      {!isCameraReady && !error && (
+        <div className="absolute inset-0 flex items-center justify-center text-white z-10">
+          Initializing Camera...
+        </div>
+      )}
+      {/* Overlay guide box */}
+      <div className="absolute inset-0 border-2 border-white/50 m-8 rounded-lg pointer-events-none"></div>
+      {/* Hidden canvas for processing */}
       <canvas ref={canvasRef} className="hidden" />
-
-      {/* Controls */}
-      <div className="mt-8 flex flex-col items-center gap-4 w-full max-w-md">
+      {/* Controls at bottom */}
+      <div className="absolute bottom-10 z-20 w-full max-w-md mx-auto px-4">
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative w-full text-center">
             {error}
           </div>
         )}
-
         {!isAutoCapture && (
           <button
             onClick={handleScan}
             disabled={!isCameraReady || isScanning}
-            className={`
-              w-full py-4 rounded-full font-bold text-lg shadow-md transition-all
-              ${isScanning || !isCameraReady 
-                ? 'bg-gray-400 cursor-not-allowed text-gray-200' 
+            className={`w-full py-4 rounded-full font-bold text-lg shadow-md transition-all
+              ${isScanning || !isCameraReady
+                ? 'bg-gray-400 cursor-not-allowed text-gray-200'
                 : 'bg-blue-600 hover:bg-blue-700 text-white active:scale-95'
               }
             `}
@@ -228,67 +216,52 @@ export default function MedicineScanner() {
             {isScanning ? 'Scanning...' : 'Capture & Identify'}
           </button>
         )}
-
-        {isAutoCapture && (
-          <div className="w-full text-center text-sm text-gray-600 py-4">
-            {isScanning ? '🔄 Scanning...' : '✓ Auto-capture enabled'}
-          </div>
-        )}
       </div>
 
-      {/* Results Section */}
+      {/* Bottom Sheet Modal for Results */}
       {scanResult && scanResult.medicineInfo && (
-        <div className="mt-8 w-full max-w-md bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="bg-blue-50 px-6 py-4 border-b border-blue-100">
-            <span className="text-xs font-semibold text-blue-500 uppercase tracking-wide">Medicine Identified</span>
-            <p className="text-xl font-bold text-gray-800 capitalize">{scanResult.medicineInfo.brand_name}</p>
-          </div>
-
-          <div className="p-6 space-y-4">
-            {/* Usage Timing - Prominent Display */}
-            <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
-              <h3 className="font-bold text-blue-900 text-sm uppercase tracking-wide mb-1">How to Take</h3>
-              <p className="text-blue-800 font-semibold text-base">
-                {scanResult.medicineInfo.usage_timing}
-              </p>
+        <div className="absolute inset-0 z-50 bg-black/60 flex justify-center items-end">
+          <div className="w-full max-w-md rounded-t-3xl bg-white bottom-0 absolute p-6">
+            <button
+              aria-label="Close"
+              onClick={() => setScanResult(null)}
+              className="absolute top-4 right-4 text-gray-700 hover:text-gray-900 text-2xl font-bold"
+            >
+              
+            </button>
+            <h2 className="text-xl font-bold text-gray-900 mb-3 capitalize">{scanResult.medicineInfo.brand_name}</h2>
+            <div className="mb-4">
+              <h3 className="font-semibold text-gray-700 uppercase text-sm mb-1">How to Take</h3>
+              <p className="text-gray-800 font-semibold text-base">{scanResult.medicineInfo.usage_timing}</p>
             </div>
 
-            {/* Safety Flags */}
-            <div className="flex gap-2">
+            <div className="flex gap-4 mb-4">
               {!scanResult.medicineInfo.safety_flags.drive && (
-                <div className="flex-1 bg-red-100 border border-red-300 rounded-lg p-3 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">🚗</div>
-                    <p className="text-xs font-bold text-red-700 uppercase">Do Not Drive</p>
-                  </div>
+                <div className="flex-1 bg-red-100 border border-red-300 rounded-lg p-3 flex flex-col items-center justify-center">
+                  <div className="text-3xl mb-1">🚗</div>
+                  <p className="text-xs font-bold text-red-700 uppercase">Do Not Drive</p>
                 </div>
               )}
               {!scanResult.medicineInfo.safety_flags.alcohol && (
-                <div className="flex-1 bg-red-100 border border-red-300 rounded-lg p-3 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">🍷</div>
-                    <p className="text-xs font-bold text-red-700 uppercase">No Alcohol</p>
-                  </div>
+                <div className="flex-1 bg-red-100 border border-red-300 rounded-lg p-3 flex flex-col items-center justify-center">
+                  <div className="text-3xl mb-1">🍷</div>
+                  <p className="text-xs font-bold text-red-700 uppercase">No Alcohol</p>
                 </div>
               )}
             </div>
 
-            <div>
+            <div className="mb-4">
               <h3 className="font-semibold text-gray-700">Purpose</h3>
-              <p className="text-gray-600 text-sm mt-1 leading-relaxed">
-                {scanResult.medicineInfo.purpose}
-              </p>
+              <p className="text-gray-600 text-sm leading-relaxed mt-1">{scanResult.medicineInfo.purpose}</p>
             </div>
-            
-            <div>
+
+            <div className="mb-4">
               <h3 className="font-semibold text-gray-700">Active Ingredient</h3>
-              <p className="text-gray-600 text-sm mt-1">
-                {scanResult.medicineInfo.active_ingredient}
-              </p>
+              <p className="text-gray-600 text-sm mt-1">{scanResult.medicineInfo.active_ingredient}</p>
             </div>
 
             {scanResult.medicineInfo.warnings.length > 0 && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
                 <h3 className="font-semibold text-yellow-900 text-sm mb-2">⚠️ Warnings</h3>
                 <ul className="text-xs text-yellow-800 space-y-1">
                   {scanResult.medicineInfo.warnings.map((warning, idx) => (
