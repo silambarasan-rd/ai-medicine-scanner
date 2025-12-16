@@ -4,8 +4,8 @@
 
 MediScan AI transforms your device into a smart medical assistant. By simply pointing your camera at a medicine box or pill bottle, the application uses multimodal AI to identify the drug, explain its purpose, and provide critical safety warnings.
 
-![Project Status](https://img.shields.io/badge/Status-Active_Development-green)
-![Tech Stack](https://img.shields.io/badge/Stack-Next.js_14_|_Gemini_AI_|_Tailwind-blue)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/dd3cc645-e19d-4dca-afe1-d89accaea709/deploy-status)](https://app.netlify.com/projects/mathirai/deploys)
+![Tech Stack](https://img.shields.io/badge/Stack-Next.js_14_|_Gemini_AI_|_Open_AI_|_Tailwind-blue)
 
 ## 🌟 Key Features
 
