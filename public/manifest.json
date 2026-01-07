@@ -1,0 +1,18 @@
+{
+  "name": "MathirAI - AI Medicine Scanner",
+  "short_name": "MathirAI",
+  "description": "An intelligent medicine identifier powered by Next.js and Google Gemini / Open AI.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "background_color": "#bfdbfe",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/medicine-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

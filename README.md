@@ -1,15 +1,15 @@
 # 💊 MathirAI
 
-> **An intelligent medicine identifier powered by Next.js and Google Gemini Vision.**
+> **An intelligent medicine identifier powered by Next.js and Google Gemini / Open AI.**
 
-MediScan AI transforms your device into a smart medical assistant. By simply pointing your camera at a medicine box or pill bottle, the application uses multimodal AI to identify the drug, explain its purpose, and provide critical safety warnings.
+MathirAI transforms your device into a smart medical assistant. By simply pointing your camera at a medicine box or pill bottle, the application uses multimodal AI to identify the drug, explain its purpose, and provide critical safety warnings.
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/dd3cc645-e19d-4dca-afe1-d89accaea709/deploy-status)](https://app.netlify.com/projects/mathirai/deploys)
-![Tech Stack](https://img.shields.io/badge/Stack-Next.js_14_|_Gemini_AI_|_Open_AI_|_Tailwind-blue)
+![Tech Stack](https://img.shields.io/badge/Stack-Next.js_16_|_Gemini_AI_|_Open_AI_|_Tailwind-blue)
 
 ## 🌟 Key Features
 
-- **👁️ AI Vision-to-Text:** Uses Google Gemini 1.5 Flash to "see" and identify medicines from images, handling blurry text and complex packaging better than traditional OCR.
+- **👁️ AI Vision-to-Text:** Uses Google Gemini 2.5 Flash / GPT 4O Mini to "see" and identify medicines from images, handling blurry text and complex packaging better than traditional OCR.
 - **⚡ Auto-Capture:** Smart detection automatically captures the medicine when the camera is steady.
 - **🛡️ Safety & Interaction Checks:**
   - 🚗 **Driving Safety:** Instantly warns if the medicine causes drowsiness.
@@ -22,15 +22,15 @@ MediScan AI transforms your device into a smart medical assistant. By simply poi
 
 - **Framework:** [Next.js](https://nextjs.org/) (App Router)
 - **Language:** TypeScript
-- **AI Model:** [Google Gemini 1.5 Flash](https://ai.google.dev/) (via Generative AI SDK)
+- **AI Model:** `Googemini-2.5-flash` or `gpt-4o-mini`
 - **Styling:** Tailwind CSS
 - **HTTP Client:** Axios
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ installed.
-- A Google Cloud API Key with access to **Gemini API**. [Get it here](https://aistudio.google.com/).
+- Node.js 22+ installed.
+- A Google Cloud API Key or Open AI API key with access.
 
 ### Installation
 
@@ -48,7 +48,14 @@ MediScan AI transforms your device into a smart medical assistant. By simply poi
     Create a .env.local file in the root directory:
 
     ```Env
-    GOOGLE_API_KEY=your_google_gemini_api_key_here
+    # Add Google API Key
+    GOOGLE_API_KEY=your_google_api_key_here
+
+    # Add OpenAI Key
+    OPENAI_API_KEY=your_openai_api_key_here
+
+    # The Master Switch (options: 'google' or 'openai')
+    AI_PROVIDER=openai
     ```
 
 4. **Run the development server**:
@@ -75,8 +82,8 @@ MediScan AI transforms your device into a smart medical assistant. By simply poi
 - [x] Vision-based identification
 - [x] Safety Badges (Driving/Alcohol)
 - [x] Auto-Capture Toggle
+- [x] **PWA Ready**: Configure metadata and icons to install on mobile as an application.
 - [ ] **Drug Interaction Checker**: Scan multiple meds to check for conflicts.
-- [ ] **Price Comparison**: Check generic alternatives.
 - [ ] **React Native Mobile App**: Porting to native iOS/Android.
 
 ## ⚠️ Medical Disclaimer
@@ -89,4 +96,4 @@ MediScan AI transforms your device into a smart medical assistant. By simply poi
 - Always read the official label and leaflet provided with the medicine.
 
 -------------------------------------------------------------------------------
-Made with ❤️ using Next.js and Google Gemini.
+Made with ❤️ using Next.js and Open AI, Google Gemini.

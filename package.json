@@ -22,22 +22,24 @@
     "type": "public"
   },
   "scripts": {
-    "dev": "next dev",
-    "dev:ssl": "next dev --experimental-https",
-    "build": "next build",
-    "start": "next start",
+    "dev": "next dev --webpack",
+    "dev:ssl": "next dev --webpack --experimental-https",
+    "build": "next build --webpack",
+    "start": "next start --webpack",
     "lint": "eslint"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "axios": "^1.13.2",
     "next": "^16.0.10",
+    "next-pwa": "^5.6.0",
     "openai": "^6.10.0",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/next-pwa": "^5.6.9",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
