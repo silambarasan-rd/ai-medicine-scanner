@@ -2,11 +2,14 @@
 
 import { createClient } from '../utils/supabase/client';
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
   const supabase = createClient();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const errorFromUrl = searchParams.get('error');
+  const [error, setError] = useState<string | null>(errorFromUrl);
 
   const handleOAuthLogin = async (provider: 'google' | 'github' | 'azure') => {
     setLoading(provider);

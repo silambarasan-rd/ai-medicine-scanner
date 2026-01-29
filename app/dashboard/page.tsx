@@ -35,9 +35,23 @@ export default function MedicineScanner() {
   const [error, setError] = useState<string | null>(null);
   const [isAutoCapture, setIsAutoCapture] = useState(true);
   const prevIsAutoCaptureRef = useRef<boolean>(isAutoCapture);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Touch tracking state for Bottom Sheet Modal
   const [touchStart, setTouchStart] = useState<number | null>(null);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+      } else {
+        setIsAuthenticated(true);
+      }
+    };
+    checkAuth();
+  }, [router, supabase]);
 
   // Logout handler
   const handleLogout = async () => {
@@ -47,6 +61,8 @@ export default function MedicineScanner() {
 
   // 1. Initialize Camera
   useEffect(() => {
+    if (!isAuthenticated) return; // Don't start camera until authenticated
+    
     let stream: MediaStream | null = null;
 
     const startCamera = async () => {
@@ -76,7 +92,7 @@ export default function MedicineScanner() {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [isAuthenticated]);
 
   // 3. Fetch Data from our AI API
   const fetchMedicineDataAI = async (base64Image: string, signal: AbortSignal): Promise<MedicineData | null> => {

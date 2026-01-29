@@ -24,7 +24,7 @@ MathirAI transforms your device into a smart medical assistant. By simply pointi
 - **Framework:** [Next.js](https://nextjs.org/) (App Router)
 - **Language:** TypeScript
 - **Authentication:** [Supabase](https://supabase.com/) (OAuth2)
-- **AI Model:** `Googemini-2.5-flash` or `gpt-4o-mini`
+- **AI Model:** `gemini-2.5-flash` or `gpt-4o-mini`
 - **Styling:** Tailwind CSS
 - **HTTP Client:** Axios
 
