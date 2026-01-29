@@ -1,11 +1,9 @@
 'use client';
 
 import { createClient } from '../utils/supabase/client';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function LoginPage() {
-  const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +24,7 @@ export default function LoginPage() {
         setError(error.message);
         setLoading(null);
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
       setLoading(null);
     }

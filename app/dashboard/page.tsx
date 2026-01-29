@@ -38,7 +38,6 @@ export default function MedicineScanner() {
 
   // Touch tracking state for Bottom Sheet Modal
   const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   // Logout handler
   const handleLogout = async () => {
@@ -281,8 +280,8 @@ export default function MedicineScanner() {
             }}
             onTouchEnd={(e) => {
               if(e.changedTouches && e.changedTouches.length > 0) {
-                setTouchEnd(e.changedTouches[0].clientY);
-                if (touchStart !== null && (touchStart - e.changedTouches[0].clientY) < -75) {
+                const touchEnd = e.changedTouches[0].clientY;
+                if (touchStart !== null && (touchStart - touchEnd) < -75) {
                   setScanResult(null);
                 }
               }
