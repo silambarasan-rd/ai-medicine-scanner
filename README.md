@@ -9,6 +9,7 @@ MathirAI transforms your device into a smart medical assistant. By simply pointi
 
 ## 🌟 Key Features
 
+- **🔐 Secure Authentication:** OAuth2 login with Google, GitHub, and Microsoft via Supabase.
 - **👁️ AI Vision-to-Text:** Uses Google Gemini 2.5 Flash / GPT 4O Mini to "see" and identify medicines from images, handling blurry text and complex packaging better than traditional OCR.
 - **⚡ Auto-Capture:** Smart detection automatically captures the medicine when the camera is steady.
 - **🛡️ Safety & Interaction Checks:**
@@ -22,6 +23,7 @@ MathirAI transforms your device into a smart medical assistant. By simply pointi
 
 - **Framework:** [Next.js](https://nextjs.org/) (App Router)
 - **Language:** TypeScript
+- **Authentication:** [Supabase](https://supabase.com/) (OAuth2)
 - **AI Model:** `Googemini-2.5-flash` or `gpt-4o-mini`
 - **Styling:** Tailwind CSS
 - **HTTP Client:** Axios
@@ -31,6 +33,7 @@ MathirAI transforms your device into a smart medical assistant. By simply pointi
 ### Prerequisites
 - Node.js 22+ installed.
 - A Google Cloud API Key or Open AI API key with access.
+- A Supabase account with OAuth2 providers configured.
 
 ### Installation
 
@@ -56,7 +59,21 @@ MathirAI transforms your device into a smart medical assistant. By simply pointi
 
     # The Master Switch (options: 'google' or 'openai')
     AI_PROVIDER=openai
+
+    # Supabase Configuration
+    NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
     ```
+
+    **Setting up Supabase:**
+    
+    1. Create a project at [supabase.com](https://supabase.com)
+    2. Go to **Settings** → **API** and copy your project URL and anon key
+    3. Enable OAuth providers:
+       - Go to **Authentication** → **Providers**
+       - Enable Google, GitHub, and/or Microsoft
+       - Configure OAuth credentials for each provider
+       - Set the redirect URL to: `https://your-domain.com/auth/callback`
 
 4. **Run the development server**:
     ```bash
@@ -71,6 +88,15 @@ MathirAI transforms your device into a smart medical assistant. By simply pointi
     **Note on Mobile Testing:** Camera access requires HTTPS. To test on your phone, use `npm run dev -- --experimental-https` or tunnel via [Ngrok](https://www.google.com/url?sa=E&q=https%3A%2F%2Fngrok.com%2F).
 
 ## 📱 How It Works
+
+### Authentication Flow
+1. **Login:** User visits the app and is redirected to `/login` if not authenticated.
+2. **OAuth:** User selects a provider (Google, GitHub, or Microsoft) and authorizes.
+3. **Callback:** After authorization, user is redirected back to `/auth/callback`.
+4. **Session:** Supabase exchanges the code for a session and redirects to `/dashboard`.
+5. **Protected Routes:** Middleware ensures only authenticated users can access `/dashboard`.
+
+### Medicine Scanning
 1. **Capture:** The app captures a frame from the video feed (Auto or Manual).
 2. **Process:** The image is converted to Base64 and sent to the secure API route.
 3. **Analyze:** Google Gemini Vision analyzes the image context, text, and packaging.
@@ -83,7 +109,9 @@ MathirAI transforms your device into a smart medical assistant. By simply pointi
 - [x] Safety Badges (Driving/Alcohol)
 - [x] Auto-Capture Toggle
 - [x] **PWA Ready**: Configure metadata and icons to install on mobile as an application.
+- [x] **Secure Authentication**: OAuth2 login with Supabase.
 - [ ] **Drug Interaction Checker**: Scan multiple meds to check for conflicts.
+- [ ] **Scan History**: Save and view past scans.
 - [ ] **React Native Mobile App**: Porting to native iOS/Android.
 
 ## ⚠️ Medical Disclaimer
