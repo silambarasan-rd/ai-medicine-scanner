@@ -11,7 +11,9 @@ export default function LoginPage() {
   const errorFromUrl = searchParams.get('error');
   const [error, setError] = useState<string | null>(errorFromUrl);
 
-  const handleOAuthLogin = async (provider: 'google' | 'github' | 'azure') => {
+  const [email, setEmail] = useState('');
+
+  const handleOAuthLogin = async (provider: 'google' | 'github') => {
     setLoading(provider);
     setError(null);
 
@@ -33,6 +35,31 @@ export default function LoginPage() {
     }
   };
 
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading('email');
+    setError(null);
+
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        setError(error.message);
+        setLoading(null);
+      } else {
+        setError('Check your email for the login link!');
+      }
+    } catch {
+      setError('An unexpected error occurred');
+      setLoading(null);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
@@ -44,12 +71,56 @@ export default function LoginPage() {
             <p className="text-gray-600">AI-Powered Medicine Scanner</p>
           </div>
 
-          {/* Error Message */}
+          {/* Error/Success Message */}
           {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+            <div className={`mb-6 px-4 py-3 rounded-lg text-sm ${
+              error.includes('Check your email') 
+                ? 'bg-green-50 border border-green-200 text-green-700'
+                : 'bg-red-50 border border-red-200 text-red-700'
+            }`}>
               {error}
             </div>
           )}
+
+          {/* Email Login Form */}
+          <form onSubmit={handleEmailLogin} className="mb-6">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              Email Address
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                required
+                disabled={loading !== null}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <button
+                type="submit"
+                disabled={loading !== null || !email}
+                className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading === 'email' ? (
+                  <div className="w-5 h-5 border-2 border-blue-300 border-t-white rounded-full animate-spin" />
+                ) : (
+                  'Send Link'
+                )}
+              </button>
+            </div>
+          </form>
+
+          {/* Divider */}
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            </div>
+          </div>
 
           {/* OAuth Buttons */}
           <div className="space-y-3">
@@ -100,21 +171,6 @@ export default function LoginPage() {
                 </svg>
               )}
               {loading === 'github' ? 'Connecting...' : 'Continue with GitHub'}
-            </button>
-
-            <button
-              onClick={() => handleOAuthLogin('azure')}
-              disabled={loading !== null}
-              className="w-full flex items-center justify-center gap-3 bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading === 'azure' ? (
-                <div className="w-5 h-5 border-2 border-blue-300 border-t-white rounded-full animate-spin" />
-              ) : (
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M3.5 3.75a.75.75 0 0 0-.75.75v6.75h3V3.75h-2.25ZM3.5 11.25a.75.75 0 0 0-.75.75v8.25h3V12h-2.25Zm3.75-7.5a.75.75 0 0 0-.75.75v6.75h3V3.75H7.25ZM7.25 11.25a.75.75 0 0 0-.75.75v8.25h3V12h-2.25Zm3.75-7.5a.75.75 0 0 0-.75.75v6.75h3V3.75H11Zm0 7.5a.75.75 0 0 0-.75.75v8.25h3V12h-2.25Zm3.75-7.5a.75.75 0 0 0-.75.75v6.75h3V3.75h-2.25Zm0 7.5a.75.75 0 0 0-.75.75v8.25h3V12h-2.25Zm3.75-7.5a.75.75 0 0 0-.75.75v6.75h3V3.75h-2.25Zm0 7.5a.75.75 0 0 0-.75.75v8.25h3V12h-2.25Z" />
-                </svg>
-              )}
-              {loading === 'azure' ? 'Connecting...' : 'Continue with Microsoft'}
             </button>
           </div>
 

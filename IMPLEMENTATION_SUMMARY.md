@@ -3,7 +3,7 @@
 ## 📁 Files Created/Modified
 
 ### New Files (8)
-- `app/login/page.tsx` - OAuth login page with Google, GitHub, Microsoft
+- `app/login/page.tsx` - OAuth login page with Email, Google, and GitHub
 - `app/dashboard/page.tsx` - Protected dashboard with MedicineScanner
 - `app/auth/callback/route.ts` - OAuth callback handler
 - `app/utils/supabase/client.ts` - Client-side Supabase instance
@@ -41,16 +41,17 @@
     ┌──────────────┐          ┌──────────────┐
     │ /login page  │          │  /dashboard  │
     │              │          │              │
-    │ • Google     │          │ • Camera     │
-    │ • GitHub     │          │ • Scanner    │
-    │ • Microsoft  │          │ • Logout     │
+    │ • Email      │          │ • Camera     │
+    │ • Google     │          │ • Scanner    │
+    │ • GitHub     │          │ • Logout     │
     └──────┬───────┘          └──────────────┘
            │
-           │ User clicks provider
+           │ User enters email or clicks provider
            ▼
     ┌──────────────┐
-    │  OAuth Flow  │
+    │ Auth Flow    │
     │ (Supabase)   │
+    │ Email/OAuth  │
     └──────┬───────┘
            │
            │ Success
@@ -73,12 +74,12 @@
 ### Login Page Features
 - 💊 Large emoji logo with app branding
 - 🎨 Gradient background (blue theme)
-- 🔘 Three OAuth buttons:
+- 📧 Email magic link authentication
+- 🔘 Two OAuth buttons:
   - Google (with Google logo and colors)
   - GitHub (dark theme)
-  - Microsoft (Azure blue)
 - ⚡ Loading states with spinners
-- ⚠️ Error message display
+- ⚠️ Error/Success message display
 - 📱 Mobile-responsive design
 
 ### Dashboard Features
@@ -137,12 +138,12 @@ Before deploying to production:
 
 1. **Supabase Project**
    - Project URL: `NEXT_PUBLIC_SUPABASE_URL`
-   - Anon Key: `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - Publishable Key: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 
-2. **OAuth Providers**
+2. **Authentication Providers**
+   - Email: Magic link (enabled by default)
    - Google: Client ID + Secret
    - GitHub: Client ID + Secret
-   - Microsoft: Application ID + Secret
 
 3. **Redirect URLs**
    - Development: `http://localhost:3000/auth/callback`

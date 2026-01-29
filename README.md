@@ -9,7 +9,7 @@ MathirAI transforms your device into a smart medical assistant. By simply pointi
 
 ## 🌟 Key Features
 
-- **🔐 Secure Authentication:** OAuth2 login with Google, GitHub, and Microsoft via Supabase.
+- **🔐 Secure Authentication:** OAuth2 login with Google, GitHub, and Email via Supabase.
 - **👁️ AI Vision-to-Text:** Uses Google Gemini 2.5 Flash / GPT 4O Mini to "see" and identify medicines from images, handling blurry text and complex packaging better than traditional OCR.
 - **⚡ Auto-Capture:** Smart detection automatically captures the medicine when the camera is steady.
 - **🛡️ Safety & Interaction Checks:**
@@ -62,16 +62,16 @@ MathirAI transforms your device into a smart medical assistant. By simply pointi
 
     # Supabase Configuration
     NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
     ```
 
     **Setting up Supabase:**
     
     1. Create a project at [supabase.com](https://supabase.com)
-    2. Go to **Settings** → **API** and copy your project URL and anon key
-    3. Enable OAuth providers:
+    2. Go to **Settings** → **API** and copy your project URL and publishable key
+    3. Enable authentication providers:
        - Go to **Authentication** → **Providers**
-       - Enable Google, GitHub, and/or Microsoft
+       - Enable Email, Google, and/or GitHub
        - Configure OAuth credentials for each provider
        - Set the redirect URL to: `https://your-domain.com/auth/callback`
 
@@ -91,7 +91,7 @@ MathirAI transforms your device into a smart medical assistant. By simply pointi
 
 ### Authentication Flow
 1. **Login:** User visits the app and is redirected to `/login` if not authenticated.
-2. **OAuth:** User selects a provider (Google, GitHub, or Microsoft) and authorizes.
+2. **OAuth:** User selects a provider (Google, GitHub, or Email) and authorizes.
 3. **Callback:** After authorization, user is redirected back to `/auth/callback`.
 4. **Session:** Supabase exchanges the code for a session and redirects to `/dashboard`.
 5. **Protected Routes:** Middleware ensures only authenticated users can access `/dashboard`.

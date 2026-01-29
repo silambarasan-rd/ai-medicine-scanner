@@ -5,7 +5,7 @@ This guide will help you set up Supabase OAuth authentication for MathirAI.
 ## Prerequisites
 
 1. A Supabase account (sign up at https://supabase.com)
-2. OAuth credentials from providers (Google, GitHub, Microsoft)
+2. OAuth credentials from providers (Google, GitHub) if using OAuth
 
 ## Step 1: Create a Supabase Project
 
@@ -22,15 +22,24 @@ This guide will help you set up Supabase OAuth authentication for MathirAI.
 1. After the project is created, go to **Settings** → **API**
 2. Copy the following values:
    - Project URL (e.g., `https://xxxxx.supabase.co`)
-   - anon/public key (the long string under "Project API keys")
+   - publishable/anon key (the long string under "Project API keys")
 3. Add these to your `.env.local` file:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_project_url_here
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_publishable_key_here
 ```
 
-## Step 3: Configure OAuth Providers
+## Step 3: Configure Authentication Providers
+
+### Email Authentication (Magic Link)
+
+Email authentication is enabled by default in Supabase. Users will receive a magic link via email to sign in.
+
+In Supabase:
+1. Go to **Authentication** → **Providers**
+2. Ensure **Email** is enabled
+3. Configure email templates (optional) under **Authentication** → **Email Templates**
 
 ### Google OAuth
 
@@ -68,26 +77,6 @@ In Supabase:
 3. Paste your Client ID and Client Secret
 4. Save
 
-### Microsoft (Azure AD) OAuth
-
-1. Go to [Azure Portal](https://portal.azure.com/)
-2. Navigate to **Azure Active Directory** → **App registrations**
-3. Click **New registration**
-4. Fill in the details:
-   - Name: MathirAI
-   - Supported account types: Accounts in any organizational directory and personal Microsoft accounts
-   - Redirect URI: Web - `https://your-project-ref.supabase.co/auth/v1/callback`
-5. Click **Register**
-6. Copy the Application (client) ID
-7. Go to **Certificates & secrets** → **New client secret**
-8. Copy the secret value
-
-In Supabase:
-1. Go to **Authentication** → **Providers**
-2. Enable **Azure**
-3. Paste your Client ID and Client Secret
-4. Save
-
 ## Step 4: Configure Site URL
 
 1. In Supabase, go to **Authentication** → **URL Configuration**
@@ -105,7 +94,10 @@ In Supabase:
 
 2. Visit `http://localhost:3000`
 3. You should be redirected to the login page
-4. Try logging in with one of the configured OAuth providers
+4. Try logging in with:
+   - Email (you'll receive a magic link)
+   - Google OAuth
+   - GitHub OAuth
 5. After successful authentication, you should be redirected to the dashboard
 
 ## Troubleshooting
