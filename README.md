@@ -65,6 +65,8 @@ MathirAI transforms your device into a smart medical assistant. By simply pointi
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
     ```
 
+    > **Build Note:** Environment variables are required for production builds. You can use placeholder values for build testing, but real credentials are needed for the app to function.
+
     **Setting up Supabase:**
     
     1. Create a project at [supabase.com](https://supabase.com)
