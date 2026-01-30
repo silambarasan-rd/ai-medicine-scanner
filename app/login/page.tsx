@@ -1,10 +1,13 @@
 'use client';
 
 import { createClient } from '../utils/supabase/client';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function LoginPage() {
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
+function LoginForm() {
   const supabase = createClient();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState<string | null>(null);
@@ -188,5 +191,17 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -3,13 +3,24 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
-const openAI = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 const AI_PROVIDER = process.env.AI_PROVIDER || "gemini";
 
+function getGeminiClient() {
+  if (!process.env.GOOGLE_API_KEY) {
+    throw new Error("GOOGLE_API_KEY is not configured");
+  }
+  return new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+}
+
+function getOpenAIClient() {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is not configured");
+  }
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
+
 async function identifyWithGemini(image: string) {
+  const genAI = getGeminiClient();
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
   const prompt = `Identify the medicine in this image. Return a JSON object with the following keys:
   - brand_name: The name of the medicine
@@ -37,6 +48,7 @@ Return ONLY a raw JSON object (no markdown formatting). If you cannot identify a
 }
 
 async function identifyWithOpenAI(image: string) {
+  const openAI = getOpenAIClient();
 
   const systemMessage = `You are an expert pharmacist AI. Identify the medicine in the image. Return a valid JSON object with these exact keys:
   - brand_name (string) - The name of the medicine

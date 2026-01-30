@@ -5,6 +5,9 @@ import axios from 'axios';
 import { createClient } from '../utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 // --- Types ---
 interface MedicineData {
   brand_name: string;
