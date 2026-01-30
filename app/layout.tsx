@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import ServiceWorkerRegistrar from "./components/ServiceWorkerRegistrar";
+import Navbar from "./components/Navbar";
 
 export const metadata: Metadata = {
   title: "MathirAI",
@@ -40,6 +41,7 @@ export default function RootLayout({
         <meta property="og:url" content="https://mathirai.netlify.app/" />
       </head>
       <body className="antialiased">
+        <Navbar />
         {children}
         <ServiceWorkerRegistrar />
       </body>
