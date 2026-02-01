@@ -143,15 +143,20 @@ function DashboardContent() {
     setNotificationLoading(true);
     try {
       if (notificationsEnabled) {
+        console.log('Unsubscribing from notifications...');
         await unsubscribeFromPushNotifications();
         setNotificationsEnabled(false);
+        console.log('Unsubscribed successfully');
       } else {
+        console.log('Subscribing to notifications...');
         await subscribeToPushNotifications();
         setNotificationsEnabled(true);
+        console.log('Subscribed successfully');
       }
     } catch (error) {
-      console.error('Error toggling notifications:', error);
-      alert('Failed to toggle notifications. Please check your browser settings.');
+      console.error('❌ Error toggling notifications:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to toggle notifications: ${errorMessage}\n\nCheck the browser console for details.`);
     } finally {
       setNotificationLoading(false);
     }
