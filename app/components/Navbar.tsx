@@ -83,7 +83,10 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand */}
           <div className="flex-shrink-0">
-            <h1 className="text-2xl font-bold text-charcoal-blue">💊 MathirAI</h1>
+            <Link
+              href="/dashboard">
+              <h1 className="text-2xl font-bold text-charcoal-blue">💊 MathirAI</h1>
+            </Link>
           </div>
 
           {/* Nav Links */}

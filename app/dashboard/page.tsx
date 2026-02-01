@@ -11,7 +11,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import styles from './Dashboard.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUtensils, faBell, faBellSlash } from '@fortawesome/free-solid-svg-icons';
+import { faUtensils, faBell, faBellSlash, faCircle, faTimes, faSlash } from '@fortawesome/free-solid-svg-icons';
 import {
   subscribeToPushNotifications,
   unsubscribeFromPushNotifications,
@@ -455,6 +455,20 @@ function DashboardContent() {
           >
             <h2 className="text-2xl font-bold text-deep-space-blue mb-4">
               {selectedEvent.title}
+
+              <span className='ml-1 inline-flex items-center rounded-md bg-rosy-granite/5 px-2 py-1 text-xs font-medium text-green-700 inset-ring inset-ring-pink-700/10' style={{ textTransform: 'capitalize' }}>
+                { selectedEvent.extendedProps.medicine.meal_timing === 'after' ? 
+                  <span className="fa-stack mr-1">
+                    <FontAwesomeIcon icon={faCircle} className="fa-stack-2x" />
+                    <FontAwesomeIcon icon={faUtensils} className="mr-1 fa-stack-1x fa-inverse" />
+                  </span> : 
+                  <span className="fa-stack mr-1">
+                    <FontAwesomeIcon icon={faCircle} className="fa-stack-2x" />
+                    <FontAwesomeIcon icon={faSlash} className="fa-stack-1x fa-inverse" />
+                    <FontAwesomeIcon icon={faUtensils} className="mr-1 fa-stack-1x fa-inverse" />
+                  </span> }
+                { selectedEvent.extendedProps.medicine.meal_timing } meal
+              </span>
             </h2>
             <div className="space-y-3 text-charcoal-blue mb-6">
               <p>
