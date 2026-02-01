@@ -85,16 +85,16 @@ export default function DigitalCabinetPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-rosy-granite/5 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">💊 Digital Cabinet</h1>
-            <p className="text-gray-600">Manage your medicine collection</p>
+            <h1 className="text-3xl font-bold text-deep-space-blue mb-2">💊 Digital Cabinet</h1>
+            <p className="text-blue-slate">Manage your medicine collection</p>
           </div>
           <button
             onClick={() => router.push('/add-medicine')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2"
+            className="bg-charcoal-blue hover:bg-deep-space-blue text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2"
           >
             <span>+</span>
             <span>Add Medicine</span>
@@ -118,7 +118,7 @@ export default function DigitalCabinetPage() {
             <p className="text-gray-500 text-lg mb-4">No medicines in your cabinet yet</p>
             <button
               onClick={() => router.push('/add-medicine')}
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+              className="inline-block bg-charcoal-blue hover:bg-deep-space-blue text-white px-6 py-3 rounded-lg font-semibold transition-colors"
             >
               + Add Your First Medicine
             </button>
@@ -129,14 +129,14 @@ export default function DigitalCabinetPage() {
               <div key={medicine.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">{medicine.name}</h3>
+                    <h3 className="text-xl font-bold text-deep-space-blue">{medicine.name}</h3>
                     {medicine.dosage && (
-                      <p className="text-sm text-gray-600 mt-1">Dosage: {medicine.dosage}</p>
+                      <p className="text-sm text-blue-slate mt-1">Dosage: {medicine.dosage}</p>
                     )}
                   </div>
                 </div>
 
-                <div className="space-y-2 mb-4 text-sm text-gray-700">
+                <div className="space-y-2 mb-4 text-sm text-charcoal-blue">
                   {medicine.frequency && (
                     <p>
                       <span className="font-semibold">Frequency:</span> {medicine.frequency}
@@ -159,10 +159,10 @@ export default function DigitalCabinetPage() {
                   )}
                 </div>
 
-                <div className="flex gap-3 pt-4 border-t border-gray-200">
+                <div className="flex gap-3 pt-4 border-t border-rosy-granite/30">
                   <button
                     onClick={() => handleEdit(medicine.id)}
-                    className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold py-2 px-4 rounded-lg transition-colors"
+                    className="flex-1 bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue font-semibold py-2 px-4 rounded-lg transition-colors"
                   >
                     ✏️ Edit
                   </button>

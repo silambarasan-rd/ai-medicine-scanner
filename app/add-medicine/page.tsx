@@ -114,10 +114,10 @@ export default function AddMedicinePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-rosy-granite/5 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6 sm:p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">💊 Add Medicine</h1>
+          <h1 className="text-3xl font-bold text-deep-space-blue mb-8">💊 Add Medicine</h1>
 
           {message && (
             <div
@@ -134,7 +134,7 @@ export default function AddMedicinePage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Medicine Name with Scanner */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-charcoal-blue mb-2">
                 Medicine Name *
               </label>
               <div className="flex gap-2">
@@ -143,12 +143,12 @@ export default function AddMedicinePage() {
                   value={form.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="e.g., Dolo 650, Aspirin"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
                 />
                 <button
                   type="button"
                   onClick={() => setIsScannerOpen(true)}
-                  className="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-semibold transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue rounded-lg font-semibold transition-colors flex items-center gap-2"
                 >
                   📷 Scan
                 </button>
@@ -157,7 +157,7 @@ export default function AddMedicinePage() {
 
             {/* Dosage */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-charcoal-blue mb-2">
                 Dosage
               </label>
               <input
@@ -165,39 +165,39 @@ export default function AddMedicinePage() {
                 value={form.dosage}
                 onChange={(e) => handleInputChange('dosage', e.target.value)}
                 placeholder="e.g., 650mg, 100mg"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
               />
             </div>
 
             {/* Scheduled Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-charcoal-blue mb-2">
                 Date *
               </label>
               <input
                 type="date"
                 value={form.scheduledDate}
                 onChange={(e) => handleInputChange('scheduledDate', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
               />
             </div>
 
             {/* Timing */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-charcoal-blue mb-2">
                 Time *
               </label>
               <input
                 type="time"
                 value={form.timing}
                 onChange={(e) => handleInputChange('timing', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
               />
             </div>
 
             {/* Occurrence */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-charcoal-blue mb-2">
                 Frequency *
               </label>
               <select
@@ -205,7 +205,7 @@ export default function AddMedicinePage() {
                 onChange={(e) =>
                   handleInputChange('occurrence', e.target.value as any)
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
               >
                 <option value="once">Only Once</option>
                 <option value="daily">Daily</option>
@@ -218,7 +218,7 @@ export default function AddMedicinePage() {
             {/* Custom Occurrence */}
             {form.occurrence === 'custom' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-charcoal-blue mb-2">
                   Custom Occurrence Pattern
                 </label>
                 <input
@@ -228,14 +228,14 @@ export default function AddMedicinePage() {
                     handleInputChange('customOccurrence', e.target.value)
                   }
                   placeholder="e.g., 2 times per week, Every other day"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
                 />
               </div>
             )}
 
             {/* Meal Timing */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-charcoal-blue mb-2">
                 Meal Timing *
               </label>
               <div className="grid grid-cols-3 gap-3">
@@ -251,7 +251,7 @@ export default function AddMedicinePage() {
                       }
                       className="mr-2"
                     />
-                    <span className="text-sm font-medium text-gray-700 capitalize">
+                    <span className="text-sm font-medium text-charcoal-blue capitalize">
                       {option === 'with' ? 'With Meal' : `${option.charAt(0).toUpperCase() + option.slice(1)} Meal`}
                     </span>
                   </label>
@@ -261,7 +261,7 @@ export default function AddMedicinePage() {
 
             {/* Notes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-charcoal-blue mb-2">
                 Notes / Warnings
               </label>
               <textarea
@@ -269,7 +269,7 @@ export default function AddMedicinePage() {
                 onChange={(e) => handleInputChange('notes', e.target.value)}
                 placeholder="Any additional notes or warnings about this medicine"
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="w-full px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent resize-none"
               />
             </div>
 
@@ -281,7 +281,7 @@ export default function AddMedicinePage() {
                 className={`flex-1 py-3 px-6 rounded-lg font-semibold text-white transition-colors ${
                   saving
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-charcoal-blue hover:bg-deep-space-blue'
                 }`}
               >
                 {saving ? 'Adding...' : '✅ Add Medicine'}
@@ -289,7 +289,7 @@ export default function AddMedicinePage() {
               <button
                 type="button"
                 onClick={() => router.push('/digital-cabinet')}
-                className="flex-1 py-3 px-6 rounded-lg font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors"
+                className="flex-1 py-3 px-6 rounded-lg font-semibold text-charcoal-blue bg-gray-200 hover:bg-gray-300 transition-colors"
               >
                 Cancel
               </button>

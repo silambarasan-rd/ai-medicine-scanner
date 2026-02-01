@@ -26,7 +26,7 @@ export default function HomePage() {
   }, [router, supabase]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-rosy-granite via-blue-slate to-deep-space-blue flex items-center justify-center">
       <div className="text-center">
         <div className="text-6xl mb-4">💊</div>
         <h1 className="text-4xl font-bold text-white mb-4">MathirAI</h1>

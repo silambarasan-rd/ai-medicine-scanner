@@ -1,0 +1,22 @@
+.calendarContainer :global(.fc) {
+  font-family: inherit;
+}
+
+.calendarContainer :global(.fc-button-primary) {
+  background-color: #2c3d55;
+  border-color: #2c3d55;
+}
+
+.calendarContainer :global(.fc-button-primary:hover) {
+  background-color: #2c3d55;
+  border-color: #2c3d55;
+}
+
+.calendarContainer :global(.fc-button-primary.fc-button-active) {
+  background-color: #536271;
+  border-color: #536271;
+}
+
+.calendarContainer :global(.fc-theme-standard .fc-daygrid-day.fc-day-other) {
+  background-color: #f4f4f7;
+}
