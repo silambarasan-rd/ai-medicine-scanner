@@ -34,21 +34,39 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 
 export async function subscribeToPushNotifications(): Promise<PushSubscription> {
   try {
+    // First check if VAPID key is set
+    if (!VAPID_PUBLIC_KEY) {
+      throw new Error('VAPID public key not configured. Check NEXT_PUBLIC_VAPID_PUBLIC_KEY in .env.local');
+    }
+
+    // Request permission if not already granted
+    const permission = await requestNotificationPermission();
+    if (permission !== 'granted') {
+      throw new Error('Notification permission was denied');
+    }
+
+    console.log('Registering service worker...');
     const registration = await registerServiceWorker();
+    console.log('Service worker registered:', registration);
 
     // Check if already subscribed
     let subscription = await registration.pushManager.getSubscription();
+    console.log('Existing subscription:', subscription);
 
     if (!subscription) {
+      console.log('Subscribing to push with VAPID key...');
       // Subscribe to push notifications
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
       });
+      console.log('New subscription created:', subscription);
     }
 
     // Send subscription to backend
+    console.log('Saving subscription to backend...');
     await saveSubscription(subscription);
+    console.log('Subscription saved successfully');
 
     return subscription;
   } catch (error) {
