@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/utils/supabase/server';
+import crypto from 'crypto';
 
 // GET /api/medicines - List all medicines for authenticated user
 export async function GET(request: NextRequest) {
@@ -56,32 +57,70 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const { name, dosage, occurrence, custom_occurrence, scheduled_date, timing, meal_timing, notes } = body;
+    const { name, dosage, occurrence, custom_occurrence, scheduled_date, timing, meal_timing, notes, schedules } = body;
 
     // Validate required fields
-    if (!name || !occurrence || !scheduled_date || !timing || !meal_timing) {
+    if (!name || !occurrence || !scheduled_date) {
       return NextResponse.json(
-        { error: 'Missing required fields: name, occurrence, scheduled_date, timing, meal_timing' },
+        { error: 'Missing required fields: name, occurrence, scheduled_date' },
         { status: 400 }
       );
     }
 
-    // Insert medicine
-    const { data: medicine, error } = await supabase
+    const hasSchedules = Array.isArray(schedules) && schedules.length > 0;
+    if (!hasSchedules && (!timing || !meal_timing)) {
+      return NextResponse.json(
+        { error: 'Missing required fields: timing, meal_timing or schedules' },
+        { status: 400 }
+      );
+    }
+
+    if (hasSchedules) {
+      const invalidSchedule = schedules.find((schedule: { timing?: string; meal_timing?: string }) =>
+        !schedule?.timing || !schedule?.meal_timing
+      );
+      if (invalidSchedule) {
+        return NextResponse.json(
+          { error: 'Each schedule requires timing and meal_timing' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Insert medicine(s)
+    const groupId = crypto.randomUUID();
+    const insertPayload = hasSchedules
+      ? schedules.map((schedule: { timing: string; meal_timing: string }) => ({
+          user_id: user.id,
+          group_id: groupId,
+          name,
+          dosage,
+          occurrence,
+          custom_occurrence,
+          scheduled_date,
+          timing: schedule.timing,
+          meal_timing: schedule.meal_timing,
+          notes,
+        }))
+      : [
+          {
+            user_id: user.id,
+            group_id: groupId,
+            name,
+            dosage,
+            occurrence,
+            custom_occurrence,
+            scheduled_date,
+            timing,
+            meal_timing,
+            notes,
+          },
+        ];
+
+    const { data: medicines, error } = await supabase
       .from('user_medicines')
-      .insert({
-        user_id: user.id,
-        name,
-        dosage,
-        occurrence,
-        custom_occurrence,
-        scheduled_date,
-        timing,
-        meal_timing,
-        notes,
-      })
-      .select()
-      .single();
+      .insert(insertPayload)
+      .select();
 
     if (error) {
       console.error('Error creating medicine:', error);
@@ -91,7 +130,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(medicine, { status: 201 });
+    return NextResponse.json(medicines, { status: 201 });
   } catch (error) {
     console.error('Unexpected error in POST /api/medicines:', error);
     return NextResponse.json(

@@ -9,6 +9,8 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import styles from './Dashboard.module.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUtensils } from '@fortawesome/free-solid-svg-icons';
 
 interface Medicine {
   id: string;
@@ -229,6 +231,17 @@ export default function DashboardPage() {
               eventClick={(info) => setSelectedEvent(info.event as any)}
               eventDisplay="block"
               dayMaxEvents={3}
+              eventContent={(eventInfo) => {
+                const showMealIcon = eventInfo.event.extendedProps.medicine?.meal_timing === 'after';
+                return (
+                  <div className="flex items-center gap-1 px-1">
+                    <span className="truncate">{eventInfo.event.title}</span>
+                    {showMealIcon && (
+                      <FontAwesomeIcon icon={faUtensils} className="text-xs" />
+                    )}
+                  </div>
+                );
+              }}
             />
           </div>
         </div>

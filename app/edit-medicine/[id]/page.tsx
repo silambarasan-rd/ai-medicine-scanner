@@ -12,9 +12,12 @@ interface MedicineForm {
   occurrence: 'once' | 'daily' | 'weekly' | 'monthly' | 'custom';
   customOccurrence?: string;
   scheduledDate: string;
-  timing: string;
-  mealTiming: 'before' | 'after' | 'with';
   notes: string;
+  schedules: {
+    morning: { enabled: boolean; time: string; mealTiming: 'before' | 'after' };
+    afternoon: { enabled: boolean; time: string; mealTiming: 'before' | 'after' };
+    night: { enabled: boolean; time: string; mealTiming: 'before' | 'after' };
+  };
 }
 
 export default function EditMedicinePage() {
@@ -31,9 +34,12 @@ export default function EditMedicinePage() {
     dosage: '',
     occurrence: 'daily',
     scheduledDate: new Date().toISOString().split('T')[0],
-    timing: '09:00',
-    mealTiming: 'after',
     notes: '',
+    schedules: {
+      morning: { enabled: true, time: '09:00', mealTiming: 'after' },
+      afternoon: { enabled: false, time: '14:00', mealTiming: 'after' },
+      night: { enabled: false, time: '21:00', mealTiming: 'after' },
+    },
   });
 
   useEffect(() => {
@@ -53,6 +59,39 @@ export default function EditMedicinePage() {
 
         const medicine = await response.json();
 
+        const loadedSchedules: {
+          morning: { enabled: boolean; time: string; mealTiming: 'before' | 'after' };
+          afternoon: { enabled: boolean; time: string; mealTiming: 'before' | 'after' };
+          night: { enabled: boolean; time: string; mealTiming: 'before' | 'after' };
+        } = {
+          morning: { enabled: false, time: '09:00', mealTiming: 'after' },
+          afternoon: { enabled: false, time: '14:00', mealTiming: 'after' },
+          night: { enabled: false, time: '21:00', mealTiming: 'after' },
+        };
+
+        (medicine.schedules || []).forEach((schedule: { timing: string; meal_timing: 'before' | 'after' }) => {
+          const hour = parseInt(schedule.timing.split(':')[0] || '0', 10);
+          if (hour < 12) {
+            loadedSchedules.morning = {
+              enabled: true,
+              time: schedule.timing,
+              mealTiming: schedule.meal_timing,
+            };
+          } else if (hour < 18) {
+            loadedSchedules.afternoon = {
+              enabled: true,
+              time: schedule.timing,
+              mealTiming: schedule.meal_timing,
+            };
+          } else {
+            loadedSchedules.night = {
+              enabled: true,
+              time: schedule.timing,
+              mealTiming: schedule.meal_timing,
+            };
+          }
+        });
+
         setForm({
           id: medicine.id,
           name: medicine.name,
@@ -60,9 +99,8 @@ export default function EditMedicinePage() {
           occurrence: medicine.occurrence || 'daily',
           customOccurrence: medicine.custom_occurrence || '',
           scheduledDate: medicine.scheduled_date,
-          timing: medicine.timing,
-          mealTiming: medicine.meal_timing || 'after',
           notes: medicine.notes || '',
+          schedules: loadedSchedules,
         });
       } catch (error) {
         console.error('Error loading medicine:', error);
@@ -84,11 +122,41 @@ export default function EditMedicinePage() {
     }));
   };
 
+  const handleScheduleChange = (
+    period: 'morning' | 'afternoon' | 'night',
+    field: 'enabled' | 'time' | 'mealTiming',
+    value: boolean | string
+  ) => {
+    setForm(prev => ({
+      ...prev,
+      schedules: {
+        ...prev.schedules,
+        [period]: {
+          ...prev.schedules[period],
+          [field]: value,
+        },
+      },
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!form.name.trim()) {
       setMessage({ type: 'error', text: 'Medicine name is required' });
+      return;
+    }
+
+    const selectedSchedules = (['morning', 'afternoon', 'night'] as const)
+      .filter(period => form.schedules[period].enabled)
+      .map(period => ({
+        period,
+        timing: form.schedules[period].time,
+        meal_timing: form.schedules[period].mealTiming,
+      }));
+
+    if (selectedSchedules.length === 0) {
+      setMessage({ type: 'error', text: 'Select at least one time of day' });
       return;
     }
 
@@ -111,8 +179,7 @@ export default function EditMedicinePage() {
           occurrence: form.occurrence,
           custom_occurrence: form.customOccurrence || null,
           scheduled_date: form.scheduledDate,
-          timing: form.timing,
-          meal_timing: form.mealTiming,
+          schedules: selectedSchedules,
           notes: form.notes || null,
         }),
       });
@@ -197,17 +264,69 @@ export default function EditMedicinePage() {
               />
             </div>
 
-            {/* Timing */}
+            {/* Time of Day */}
             <div>
               <label className="block text-sm font-medium text-charcoal-blue mb-2">
-                Time *
+                Times of Day *
               </label>
-              <input
-                type="time"
-                value={form.timing}
-                onChange={(e) => handleInputChange('timing', e.target.value)}
-                className="w-full px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
-              />
+              <div className="space-y-3">
+                {([
+                  { key: 'morning', label: 'Morning' },
+                  { key: 'afternoon', label: 'Afternoon' },
+                  { key: 'night', label: 'Night' },
+                ] as const).map(({ key, label }) => (
+                  <div key={key} className="border border-dim-grey/30 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={form.schedules[key].enabled}
+                          onChange={(e) => handleScheduleChange(key, 'enabled', e.target.checked)}
+                          className="mr-2"
+                        />
+                        <span className="text-sm font-semibold text-charcoal-blue">{label}</span>
+                      </label>
+                    </div>
+                    {form.schedules[key].enabled && (
+                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium text-charcoal-blue mb-2">
+                            Time
+                          </label>
+                          <input
+                            type="time"
+                            value={form.schedules[key].time}
+                            onChange={(e) => handleScheduleChange(key, 'time', e.target.value)}
+                            className="w-full px-3 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-charcoal-blue mb-2">
+                            Meal Timing
+                          </label>
+                          <div className="grid grid-cols-2 gap-3">
+                            {(['before', 'after'] as const).map(option => (
+                              <label key={option} className="flex items-center cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name={`mealTiming-${key}`}
+                                  value={option}
+                                  checked={form.schedules[key].mealTiming === option}
+                                  onChange={(e) => handleScheduleChange(key, 'mealTiming', e.target.value)}
+                                  className="mr-2"
+                                />
+                                <span className="text-xs font-medium text-charcoal-blue capitalize">
+                                  {option} Meal
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Occurrence */}
@@ -248,31 +367,6 @@ export default function EditMedicinePage() {
               </div>
             )}
 
-            {/* Meal Timing */}
-            <div>
-              <label className="block text-sm font-medium text-charcoal-blue mb-2">
-                Meal Timing *
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                {(['before', 'with', 'after'] as const).map(option => (
-                  <label key={option} className="flex items-center cursor-pointer">
-                    <input
-                      type="radio"
-                      name="mealTiming"
-                      value={option}
-                      checked={form.mealTiming === option}
-                      onChange={(e) =>
-                        handleInputChange('mealTiming', e.target.value as any)
-                      }
-                      className="mr-2"
-                    />
-                    <span className="text-sm font-medium text-charcoal-blue capitalize">
-                      {option === 'with' ? 'With Meal' : `${option.charAt(0).toUpperCase() + option.slice(1)} Meal`}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
 
             {/* Notes */}
             <div>

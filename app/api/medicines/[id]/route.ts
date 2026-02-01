@@ -20,13 +20,13 @@ export async function GET(
 
     const { id } = await params;
 
-    // Fetch the medicine
-    const { data: medicine, error } = await supabase
+    // Fetch the medicine group
+    const { data: medicines, error } = await supabase
       .from('user_medicines')
       .select('*')
-      .eq('id', id)
+      .eq('group_id', id)
       .eq('user_id', user.id)
-      .single();
+      .order('timing', { ascending: true });
 
     if (error) {
       if (error.code === 'PGRST116') {
@@ -42,7 +42,27 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(medicine);
+    if (!medicines || medicines.length === 0) {
+      return NextResponse.json(
+        { error: 'Medicine not found' },
+        { status: 404 }
+      );
+    }
+
+    const base = medicines[0];
+    return NextResponse.json({
+      id: base.group_id,
+      name: base.name,
+      dosage: base.dosage,
+      occurrence: base.occurrence,
+      custom_occurrence: base.custom_occurrence,
+      scheduled_date: base.scheduled_date,
+      notes: base.notes,
+      schedules: medicines.map((medicine) => ({
+        timing: medicine.timing,
+        meal_timing: medicine.meal_timing,
+      })),
+    });
   } catch (error) {
     console.error('Unexpected error in GET /api/medicines/[id]:', error);
     return NextResponse.json(
@@ -73,42 +93,84 @@ export async function PUT(
 
     // Parse request body
     const body = await request.json();
-    const { name, dosage, occurrence, custom_occurrence, scheduled_date, timing, meal_timing, notes } = body;
+    const { name, dosage, occurrence, custom_occurrence, scheduled_date, timing, meal_timing, notes, schedules } = body;
 
     // Validate required fields
-    if (!name || !occurrence || !scheduled_date || !timing || !meal_timing) {
+    if (!name || !occurrence || !scheduled_date) {
       return NextResponse.json(
-        { error: 'Missing required fields: name, occurrence, scheduled_date, timing, meal_timing' },
+        { error: 'Missing required fields: name, occurrence, scheduled_date' },
         { status: 400 }
       );
     }
 
-    // Update medicine
-    const { data: medicine, error } = await supabase
-      .from('user_medicines')
-      .update({
-        name,
-        dosage,
-        occurrence,
-        custom_occurrence,
-        scheduled_date,
-        timing,
-        meal_timing,
-        notes,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .select()
-      .single();
+    const hasSchedules = Array.isArray(schedules) && schedules.length > 0;
+    if (!hasSchedules && (!timing || !meal_timing)) {
+      return NextResponse.json(
+        { error: 'Missing required fields: timing, meal_timing or schedules' },
+        { status: 400 }
+      );
+    }
 
-    if (error) {
-      if (error.code === 'PGRST116') {
+    if (hasSchedules) {
+      const invalidSchedule = schedules.find((schedule: { timing?: string; meal_timing?: string }) =>
+        !schedule?.timing || !schedule?.meal_timing
+      );
+      if (invalidSchedule) {
         return NextResponse.json(
-          { error: 'Medicine not found' },
-          { status: 404 }
+          { error: 'Each schedule requires timing and meal_timing' },
+          { status: 400 }
         );
       }
+    }
+
+    const { error: deleteError } = await supabase
+      .from('user_medicines')
+      .delete()
+      .eq('group_id', id)
+      .eq('user_id', user.id);
+
+    if (deleteError) {
+      console.error('Error clearing medicine group:', deleteError);
+      return NextResponse.json(
+        { error: 'Failed to update medicine' },
+        { status: 500 }
+      );
+    }
+
+    const insertPayload = hasSchedules
+      ? schedules.map((schedule: { timing: string; meal_timing: string }) => ({
+          user_id: user.id,
+          group_id: id,
+          name,
+          dosage,
+          occurrence,
+          custom_occurrence,
+          scheduled_date,
+          timing: schedule.timing,
+          meal_timing: schedule.meal_timing,
+          notes,
+        }))
+      : [
+          {
+            user_id: user.id,
+            group_id: id,
+            name,
+            dosage,
+            occurrence,
+            custom_occurrence,
+            scheduled_date,
+            timing,
+            meal_timing,
+            notes,
+          },
+        ];
+
+    const { data: medicines, error } = await supabase
+      .from('user_medicines')
+      .insert(insertPayload)
+      .select();
+
+    if (error) {
       console.error('Error updating medicine:', error);
       return NextResponse.json(
         { error: 'Failed to update medicine' },
@@ -116,7 +178,7 @@ export async function PUT(
       );
     }
 
-    return NextResponse.json(medicine);
+    return NextResponse.json(medicines);
   } catch (error) {
     console.error('Unexpected error in PUT /api/medicines/[id]:', error);
     return NextResponse.json(
@@ -145,11 +207,11 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Delete medicine
+    // Delete medicine group
     const { error } = await supabase
       .from('user_medicines')
       .delete()
-      .eq('id', id)
+      .eq('group_id', id)
       .eq('user_id', user.id);
 
     if (error) {

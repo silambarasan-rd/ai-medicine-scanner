@@ -7,19 +7,33 @@ import LoadingSpinner from '../components/LoadingSpinner';
 
 interface Medicine {
   id: string;
+  group_id?: string;
   name: string;
   dosage?: string;
-  frequency?: string;
+  occurrence?: string;
+  custom_occurrence?: string;
+  scheduled_date?: string;
   timing?: string;
   meal_timing?: string;
   notes?: string;
   created_at?: string;
 }
 
+interface MedicineGroup {
+  id: string;
+  name: string;
+  dosage?: string;
+  occurrence?: string;
+  custom_occurrence?: string;
+  scheduled_date?: string;
+  notes?: string;
+  schedules: { timing?: string; meal_timing?: string }[];
+}
+
 export default function DigitalCabinetPage() {
   const router = useRouter();
   const supabase = createClient();
-  const [medicines, setMedicines] = useState<Medicine[]>([]);
+  const [medicines, setMedicines] = useState<MedicineGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -38,8 +52,31 @@ export default function DigitalCabinetPage() {
           throw new Error('Failed to fetch medicines');
         }
 
-        const medicinesData = await response.json();
-        setMedicines(medicinesData || []);
+        const medicinesData: Medicine[] = await response.json();
+
+        const grouped = (medicinesData || []).reduce<Record<string, MedicineGroup>>((acc, medicine) => {
+          const groupId = medicine.group_id || medicine.id;
+          if (!acc[groupId]) {
+            acc[groupId] = {
+              id: groupId,
+              name: medicine.name,
+              dosage: medicine.dosage,
+              occurrence: medicine.occurrence,
+              custom_occurrence: medicine.custom_occurrence,
+              scheduled_date: medicine.scheduled_date,
+              notes: medicine.notes,
+              schedules: [],
+            };
+          }
+          acc[groupId].schedules.push({
+            timing: medicine.timing,
+            meal_timing: medicine.meal_timing,
+          });
+          return acc;
+        }, {});
+
+        const groupedList = Object.values(grouped);
+        setMedicines(groupedList);
       } catch (error) {
         console.error('Error loading medicines:', error);
         setMessage({ type: 'error', text: 'Failed to load medicines' });
@@ -137,20 +174,28 @@ export default function DigitalCabinetPage() {
                 </div>
 
                 <div className="space-y-2 mb-4 text-sm text-charcoal-blue">
-                  {medicine.frequency && (
+                  {medicine.occurrence && (
                     <p>
-                      <span className="font-semibold">Frequency:</span> {medicine.frequency}
+                      <span className="font-semibold">Frequency:</span> {medicine.occurrence}
+                      {medicine.custom_occurrence ? ` (${medicine.custom_occurrence})` : ''}
                     </p>
                   )}
-                  {medicine.timing && (
+                  {medicine.scheduled_date && (
                     <p>
-                      <span className="font-semibold">Timing:</span> {medicine.timing}
+                      <span className="font-semibold">Start Date:</span> {medicine.scheduled_date}
                     </p>
                   )}
-                  {medicine.meal_timing && (
-                    <p>
-                      <span className="font-semibold">Meal Timing:</span> {medicine.meal_timing}
-                    </p>
+                  {medicine.schedules.length > 0 && (
+                    <div>
+                      <p className="font-semibold">Times:</p>
+                      <ul className="mt-1 space-y-1">
+                        {medicine.schedules.map((schedule, index) => (
+                          <li key={`${medicine.id}-${index}`}>
+                            {schedule.timing} {schedule.meal_timing ? `(${schedule.meal_timing} meal)` : ''}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                   {medicine.notes && (
                     <p>
