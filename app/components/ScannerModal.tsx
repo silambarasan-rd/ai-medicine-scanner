@@ -258,7 +258,7 @@ export default function ScannerModal({ isOpen, onClose, onConfirm }: ScannerModa
               <button
                 onClick={() => setIsAutoCapture(!isAutoCapture)}
                 className={`relative inline-flex items-center h-6 w-12 rounded-full transition-colors ${
-                  isAutoCapture ? 'bg-blue-600' : 'bg-gray-600'
+                  isAutoCapture ? 'bg-charcoal-blue' : 'bg-gray-600'
                 }`}
               >
                 <span
@@ -284,7 +284,7 @@ export default function ScannerModal({ isOpen, onClose, onConfirm }: ScannerModa
                 className={`flex-1 py-3 rounded-lg font-bold text-white transition-all ${
                   isScanning || !isCameraReady
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 active:scale-95'
+                    : 'bg-charcoal-blue hover:bg-deep-space-blue active:scale-95'
                 }`}
               >
                 {isScanning ? 'Scanning...' : 'Capture'}
@@ -305,19 +305,19 @@ export default function ScannerModal({ isOpen, onClose, onConfirm }: ScannerModa
       <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold"
+          className="absolute top-4 right-4 text-gray-500 hover:text-charcoal-blue text-2xl font-bold"
         >
           ×
         </button>
 
-        <h2 className="text-2xl font-bold text-gray-900 mb-4 capitalize">
+        <h2 className="text-2xl font-bold text-deep-space-blue mb-4 capitalize">
           {scanResult.brand_name}
         </h2>
 
         <div className="space-y-4 mb-6">
           <div>
-            <h3 className="font-semibold text-gray-700 text-sm mb-1">How to Take</h3>
-            <p className="text-gray-600">{scanResult.usage_timing}</p>
+            <h3 className="font-semibold text-charcoal-blue text-sm mb-1">How to Take</h3>
+            <p className="text-blue-slate">{scanResult.usage_timing}</p>
           </div>
 
           <div className="flex gap-2">
@@ -336,13 +336,13 @@ export default function ScannerModal({ isOpen, onClose, onConfirm }: ScannerModa
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-700 text-sm mb-1">Purpose</h3>
-            <p className="text-gray-600 text-sm">{scanResult.purpose}</p>
+            <h3 className="font-semibold text-charcoal-blue text-sm mb-1">Purpose</h3>
+            <p className="text-blue-slate text-sm">{scanResult.purpose}</p>
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-700 text-sm mb-1">Active Ingredient</h3>
-            <p className="text-gray-600 text-sm">{scanResult.active_ingredient}</p>
+            <h3 className="font-semibold text-charcoal-blue text-sm mb-1">Active Ingredient</h3>
+            <p className="text-blue-slate text-sm">{scanResult.active_ingredient}</p>
           </div>
 
           {scanResult.warnings.length > 0 && (
@@ -363,13 +363,13 @@ export default function ScannerModal({ isOpen, onClose, onConfirm }: ScannerModa
         <div className="flex gap-3">
           <button
             onClick={() => setScanResult(null)}
-            className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+            className="flex-1 py-2 px-4 border border-dim-grey/40 text-charcoal-blue rounded-lg font-semibold hover:bg-rosy-granite/5 transition-colors"
           >
             Scan Again
           </button>
           <button
             onClick={handleConfirm}
-            className="flex-1 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+            className="flex-1 py-2 px-4 bg-charcoal-blue hover:bg-deep-space-blue text-white rounded-lg font-semibold transition-colors"
           >
             Confirm
           </button>

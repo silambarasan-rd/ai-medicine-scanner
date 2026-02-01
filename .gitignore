@@ -45,4 +45,7 @@ next-env.d.ts
 public/sw.js
 public/workbox-*.js
 
+# Supabase
+supabase/.temp
+
 certificates

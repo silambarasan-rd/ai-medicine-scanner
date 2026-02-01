@@ -3,22 +3,37 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '../utils/supabase/client';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 interface Medicine {
   id: string;
+  group_id?: string;
   name: string;
   dosage?: string;
-  frequency?: string;
+  occurrence?: string;
+  custom_occurrence?: string;
+  scheduled_date?: string;
   timing?: string;
   meal_timing?: string;
   notes?: string;
   created_at?: string;
 }
 
+interface MedicineGroup {
+  id: string;
+  name: string;
+  dosage?: string;
+  occurrence?: string;
+  custom_occurrence?: string;
+  scheduled_date?: string;
+  notes?: string;
+  schedules: { timing?: string; meal_timing?: string }[];
+}
+
 export default function DigitalCabinetPage() {
   const router = useRouter();
   const supabase = createClient();
-  const [medicines, setMedicines] = useState<Medicine[]>([]);
+  const [medicines, setMedicines] = useState<MedicineGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -31,17 +46,40 @@ export default function DigitalCabinetPage() {
         return;
       }
 
-      const { data: medicinesData, error } = await supabase
-        .from('user_medicines')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false });
+      try {
+        const response = await fetch('/api/medicines');
+        if (!response.ok) {
+          throw new Error('Failed to fetch medicines');
+        }
 
-      if (error) {
+        const medicinesData: Medicine[] = await response.json();
+
+        const grouped = (medicinesData || []).reduce<Record<string, MedicineGroup>>((acc, medicine) => {
+          const groupId = medicine.group_id || medicine.id;
+          if (!acc[groupId]) {
+            acc[groupId] = {
+              id: groupId,
+              name: medicine.name,
+              dosage: medicine.dosage,
+              occurrence: medicine.occurrence,
+              custom_occurrence: medicine.custom_occurrence,
+              scheduled_date: medicine.scheduled_date,
+              notes: medicine.notes,
+              schedules: [],
+            };
+          }
+          acc[groupId].schedules.push({
+            timing: medicine.timing,
+            meal_timing: medicine.meal_timing,
+          });
+          return acc;
+        }, {});
+
+        const groupedList = Object.values(grouped);
+        setMedicines(groupedList);
+      } catch (error) {
         console.error('Error loading medicines:', error);
         setMessage({ type: 'error', text: 'Failed to load medicines' });
-      } else {
-        setMedicines(medicinesData || []);
       }
 
       setLoading(false);
@@ -57,12 +95,13 @@ export default function DigitalCabinetPage() {
 
     try {
       setDeletingId(medicineId);
-      const { error } = await supabase
-        .from('user_medicines')
-        .delete()
-        .eq('id', medicineId);
+      const response = await fetch(`/api/medicines/${medicineId}`, {
+        method: 'DELETE',
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Failed to delete medicine');
+      }
 
       setMedicines(medicines.filter(m => m.id !== medicineId));
       setMessage({ type: 'success', text: 'Medicine deleted successfully' });
@@ -79,24 +118,20 @@ export default function DigitalCabinetPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading medicines...</p>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-rosy-granite/5 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">💊 Digital Cabinet</h1>
-            <p className="text-gray-600">Manage your medicine collection</p>
+            <h1 className="text-3xl font-bold text-deep-space-blue mb-2">💊 Digital Cabinet</h1>
+            <p className="text-blue-slate">Manage your medicine collection</p>
           </div>
           <button
             onClick={() => router.push('/add-medicine')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2"
+            className="bg-charcoal-blue hover:bg-deep-space-blue text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2"
           >
             <span>+</span>
             <span>Add Medicine</span>
@@ -120,7 +155,7 @@ export default function DigitalCabinetPage() {
             <p className="text-gray-500 text-lg mb-4">No medicines in your cabinet yet</p>
             <button
               onClick={() => router.push('/add-medicine')}
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+              className="inline-block bg-charcoal-blue hover:bg-deep-space-blue text-white px-6 py-3 rounded-lg font-semibold transition-colors"
             >
               + Add Your First Medicine
             </button>
@@ -131,28 +166,36 @@ export default function DigitalCabinetPage() {
               <div key={medicine.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">{medicine.name}</h3>
+                    <h3 className="text-xl font-bold text-deep-space-blue">{medicine.name}</h3>
                     {medicine.dosage && (
-                      <p className="text-sm text-gray-600 mt-1">Dosage: {medicine.dosage}</p>
+                      <p className="text-sm text-blue-slate mt-1">Dosage: {medicine.dosage}</p>
                     )}
                   </div>
                 </div>
 
-                <div className="space-y-2 mb-4 text-sm text-gray-700">
-                  {medicine.frequency && (
+                <div className="space-y-2 mb-4 text-sm text-charcoal-blue">
+                  {medicine.occurrence && (
                     <p>
-                      <span className="font-semibold">Frequency:</span> {medicine.frequency}
+                      <span className="font-semibold">Frequency:</span> {medicine.occurrence}
+                      {medicine.custom_occurrence ? ` (${medicine.custom_occurrence})` : ''}
                     </p>
                   )}
-                  {medicine.timing && (
+                  {medicine.scheduled_date && (
                     <p>
-                      <span className="font-semibold">Timing:</span> {medicine.timing}
+                      <span className="font-semibold">Start Date:</span> {medicine.scheduled_date}
                     </p>
                   )}
-                  {medicine.meal_timing && (
-                    <p>
-                      <span className="font-semibold">Meal Timing:</span> {medicine.meal_timing}
-                    </p>
+                  {medicine.schedules.length > 0 && (
+                    <div>
+                      <p className="font-semibold">Times:</p>
+                      <ul className="mt-1 space-y-1">
+                        {medicine.schedules.map((schedule, index) => (
+                          <li key={`${medicine.id}-${index}`}>
+                            {schedule.timing} {schedule.meal_timing ? `(${schedule.meal_timing} meal)` : ''}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                   {medicine.notes && (
                     <p>
@@ -161,10 +204,10 @@ export default function DigitalCabinetPage() {
                   )}
                 </div>
 
-                <div className="flex gap-3 pt-4 border-t border-gray-200">
+                <div className="flex gap-3 pt-4 border-t border-rosy-granite/30">
                   <button
                     onClick={() => handleEdit(medicine.id)}
-                    className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold py-2 px-4 rounded-lg transition-colors"
+                    className="flex-1 bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue font-semibold py-2 px-4 rounded-lg transition-colors"
                   >
                     ✏️ Edit
                   </button>

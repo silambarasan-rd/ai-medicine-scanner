@@ -23,9 +23,12 @@ interface MedicineForm {
   occurrence: 'once' | 'daily' | 'weekly' | 'monthly' | 'custom';
   customOccurrence?: string;
   scheduledDate: string;
-  timing: string;
-  mealTiming: 'before' | 'after' | 'with';
   notes: string;
+  schedules: {
+    morning: { enabled: boolean; time: string; mealTiming: 'before' | 'after' };
+    afternoon: { enabled: boolean; time: string; mealTiming: 'before' | 'after' };
+    night: { enabled: boolean; time: string; mealTiming: 'before' | 'after' };
+  };
 }
 
 export default function AddMedicinePage() {
@@ -40,15 +43,35 @@ export default function AddMedicinePage() {
     dosage: '',
     occurrence: 'daily',
     scheduledDate: new Date().toISOString().split('T')[0],
-    timing: '09:00',
-    mealTiming: 'after',
     notes: '',
+    schedules: {
+      morning: { enabled: true, time: '09:00', mealTiming: 'after' },
+      afternoon: { enabled: false, time: '14:00', mealTiming: 'after' },
+      night: { enabled: false, time: '21:00', mealTiming: 'after' },
+    },
   });
 
   const handleInputChange = (field: keyof MedicineForm, value: any) => {
     setForm(prev => ({
       ...prev,
       [field]: value,
+    }));
+  };
+
+  const handleScheduleChange = (
+    period: 'morning' | 'afternoon' | 'night',
+    field: 'enabled' | 'time' | 'mealTiming',
+    value: boolean | string
+  ) => {
+    setForm(prev => ({
+      ...prev,
+      schedules: {
+        ...prev.schedules,
+        [period]: {
+          ...prev.schedules[period],
+          [field]: value,
+        },
+      },
     }));
   };
 
@@ -72,6 +95,19 @@ export default function AddMedicinePage() {
       return;
     }
 
+    const selectedSchedules = (['morning', 'afternoon', 'night'] as const)
+      .filter(period => form.schedules[period].enabled)
+      .map(period => ({
+        period,
+        timing: form.schedules[period].time,
+        meal_timing: form.schedules[period].mealTiming,
+      }));
+
+    if (selectedSchedules.length === 0) {
+      setMessage({ type: 'error', text: 'Select at least one time of day' });
+      return;
+    }
+
     try {
       setSaving(true);
       const { data: { session } } = await supabase.auth.getSession();
@@ -80,20 +116,25 @@ export default function AddMedicinePage() {
         return;
       }
 
-      const { error } = await supabase.from('user_medicines').insert({
-        user_id: session.user.id,
-        name: form.name,
-        dosage: form.dosage || null,
-        occurrence: form.occurrence,
-        custom_occurrence: form.customOccurrence || null,
-        scheduled_date: form.scheduledDate,
-        timing: form.timing,
-        meal_timing: form.mealTiming,
-        notes: form.notes || null,
-        created_at: new Date().toISOString(),
+      const response = await fetch('/api/medicines', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: form.name,
+          dosage: form.dosage || null,
+          occurrence: form.occurrence,
+          custom_occurrence: form.customOccurrence || null,
+          scheduled_date: form.scheduledDate,
+          schedules: selectedSchedules,
+          notes: form.notes || null,
+        }),
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Failed to add medicine');
+      }
 
       setMessage({ type: 'success', text: 'Medicine added successfully!' });
       setTimeout(() => {
@@ -108,10 +149,10 @@ export default function AddMedicinePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-rosy-granite/5 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6 sm:p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">💊 Add Medicine</h1>
+          <h1 className="text-3xl font-bold text-deep-space-blue mb-8">💊 Add Medicine</h1>
 
           {message && (
             <div
@@ -128,7 +169,7 @@ export default function AddMedicinePage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Medicine Name with Scanner */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-charcoal-blue mb-2">
                 Medicine Name *
               </label>
               <div className="flex gap-2">
@@ -137,12 +178,12 @@ export default function AddMedicinePage() {
                   value={form.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="e.g., Dolo 650, Aspirin"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
                 />
                 <button
                   type="button"
                   onClick={() => setIsScannerOpen(true)}
-                  className="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-semibold transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue rounded-lg font-semibold transition-colors flex items-center gap-2"
                 >
                   📷 Scan
                 </button>
@@ -151,7 +192,7 @@ export default function AddMedicinePage() {
 
             {/* Dosage */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-charcoal-blue mb-2">
                 Dosage
               </label>
               <input
@@ -159,39 +200,91 @@ export default function AddMedicinePage() {
                 value={form.dosage}
                 onChange={(e) => handleInputChange('dosage', e.target.value)}
                 placeholder="e.g., 650mg, 100mg"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
               />
             </div>
 
             {/* Scheduled Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-charcoal-blue mb-2">
                 Date *
               </label>
               <input
                 type="date"
                 value={form.scheduledDate}
                 onChange={(e) => handleInputChange('scheduledDate', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
               />
             </div>
 
-            {/* Timing */}
+            {/* Time of Day */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Time *
+              <label className="block text-sm font-medium text-charcoal-blue mb-2">
+                Times of Day *
               </label>
-              <input
-                type="time"
-                value={form.timing}
-                onChange={(e) => handleInputChange('timing', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              <div className="space-y-3">
+                {([
+                  { key: 'morning', label: 'Morning' },
+                  { key: 'afternoon', label: 'Afternoon' },
+                  { key: 'night', label: 'Night' },
+                ] as const).map(({ key, label }) => (
+                  <div key={key} className="border border-dim-grey/30 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={form.schedules[key].enabled}
+                          onChange={(e) => handleScheduleChange(key, 'enabled', e.target.checked)}
+                          className="mr-2"
+                        />
+                        <span className="text-sm font-semibold text-charcoal-blue">{label}</span>
+                      </label>
+                    </div>
+                    {form.schedules[key].enabled && (
+                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium text-charcoal-blue mb-2">
+                            Time
+                          </label>
+                          <input
+                            type="time"
+                            value={form.schedules[key].time}
+                            onChange={(e) => handleScheduleChange(key, 'time', e.target.value)}
+                            className="w-full px-3 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-charcoal-blue mb-2">
+                            Meal Timing
+                          </label>
+                          <div className="grid grid-cols-2 gap-3">
+                            {(['before', 'after'] as const).map(option => (
+                              <label key={option} className="flex items-center cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name={`mealTiming-${key}`}
+                                  value={option}
+                                  checked={form.schedules[key].mealTiming === option}
+                                  onChange={(e) => handleScheduleChange(key, 'mealTiming', e.target.value)}
+                                  className="mr-2"
+                                />
+                                <span className="text-xs font-medium text-charcoal-blue capitalize">
+                                  {option} Meal
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Occurrence */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-charcoal-blue mb-2">
                 Frequency *
               </label>
               <select
@@ -199,7 +292,7 @@ export default function AddMedicinePage() {
                 onChange={(e) =>
                   handleInputChange('occurrence', e.target.value as any)
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
               >
                 <option value="once">Only Once</option>
                 <option value="daily">Daily</option>
@@ -212,7 +305,7 @@ export default function AddMedicinePage() {
             {/* Custom Occurrence */}
             {form.occurrence === 'custom' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-charcoal-blue mb-2">
                   Custom Occurrence Pattern
                 </label>
                 <input
@@ -222,40 +315,15 @@ export default function AddMedicinePage() {
                     handleInputChange('customOccurrence', e.target.value)
                   }
                   placeholder="e.g., 2 times per week, Every other day"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
                 />
               </div>
             )}
 
-            {/* Meal Timing */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Meal Timing *
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                {(['before', 'with', 'after'] as const).map(option => (
-                  <label key={option} className="flex items-center cursor-pointer">
-                    <input
-                      type="radio"
-                      name="mealTiming"
-                      value={option}
-                      checked={form.mealTiming === option}
-                      onChange={(e) =>
-                        handleInputChange('mealTiming', e.target.value as any)
-                      }
-                      className="mr-2"
-                    />
-                    <span className="text-sm font-medium text-gray-700 capitalize">
-                      {option === 'with' ? 'With Meal' : `${option.charAt(0).toUpperCase() + option.slice(1)} Meal`}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
 
             {/* Notes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-charcoal-blue mb-2">
                 Notes / Warnings
               </label>
               <textarea
@@ -263,7 +331,7 @@ export default function AddMedicinePage() {
                 onChange={(e) => handleInputChange('notes', e.target.value)}
                 placeholder="Any additional notes or warnings about this medicine"
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="w-full px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent resize-none"
               />
             </div>
 
@@ -275,7 +343,7 @@ export default function AddMedicinePage() {
                 className={`flex-1 py-3 px-6 rounded-lg font-semibold text-white transition-colors ${
                   saving
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-charcoal-blue hover:bg-deep-space-blue'
                 }`}
               >
                 {saving ? 'Adding...' : '✅ Add Medicine'}
@@ -283,7 +351,7 @@ export default function AddMedicinePage() {
               <button
                 type="button"
                 onClick={() => router.push('/digital-cabinet')}
-                className="flex-1 py-3 px-6 rounded-lg font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors"
+                className="flex-1 py-3 px-6 rounded-lg font-semibold text-charcoal-blue bg-gray-200 hover:bg-gray-300 transition-colors"
               >
                 Cancel
               </button>

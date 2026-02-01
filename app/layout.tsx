@@ -17,7 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#3b82f6" />
+        <meta name="theme-color" content="#3e4c5e" />
         <link rel="apple-touch-icon" href="/medicine-logo.png" />
         <link rel="icon" type="image/png" href="/medicine-logo.png" />
 
