@@ -26,19 +26,28 @@ export default function Navbar() {
     const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        // Fetch user profile data
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+        try {
+          // Fetch user profile data from API
+          const response = await fetch('/api/profile');
+          if (response.ok) {
+            const profile = await response.json();
 
-        setUser({
-          id: session.user.id,
-          email: session.user.email || '',
-          name: profile?.name || 'User',
-          profile_picture_url: profile?.profile_picture_url,
-        });
+            setUser({
+              id: session.user.id,
+              email: session.user.email || '',
+              name: profile?.name || 'User',
+              profile_picture_url: profile?.profile_picture_url,
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching profile:', error);
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            name: 'User',
+            profile_picture_url: undefined,
+          });
+        }
       }
     };
     getUser();

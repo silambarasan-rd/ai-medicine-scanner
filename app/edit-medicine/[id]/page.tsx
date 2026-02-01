@@ -44,30 +44,31 @@ export default function EditMedicinePage() {
       }
 
       const medicineId = params.id;
-      const { data: medicine, error } = await supabase
-        .from('user_medicines')
-        .select('*')
-        .eq('id', medicineId)
-        .eq('user_id', session.user.id)
-        .single();
+      try {
+        const response = await fetch(`/api/medicines/${medicineId}`);
+        if (!response.ok) {
+          throw new Error('Medicine not found');
+        }
 
-      if (error || !medicine) {
+        const medicine = await response.json();
+
+        setForm({
+          id: medicine.id,
+          name: medicine.name,
+          dosage: medicine.dosage || '',
+          occurrence: medicine.occurrence || 'daily',
+          customOccurrence: medicine.custom_occurrence || '',
+          scheduledDate: medicine.scheduled_date,
+          timing: medicine.timing,
+          mealTiming: medicine.meal_timing || 'after',
+          notes: medicine.notes || '',
+        });
+      } catch (error) {
+        console.error('Error loading medicine:', error);
         setMessage({ type: 'error', text: 'Medicine not found' });
         setTimeout(() => router.push('/digital-cabinet'), 2000);
         return;
       }
-
-      setForm({
-        id: medicine.id,
-        name: medicine.name,
-        dosage: medicine.dosage || '',
-        occurrence: medicine.occurrence || 'daily',
-        customOccurrence: medicine.custom_occurrence || '',
-        scheduledDate: medicine.scheduled_date,
-        timing: medicine.timing,
-        mealTiming: medicine.meal_timing || 'after',
-        notes: medicine.notes || '',
-      });
 
       setLoading(false);
     };
@@ -98,9 +99,12 @@ export default function EditMedicinePage() {
         return;
       }
 
-      const { error } = await supabase
-        .from('user_medicines')
-        .update({
+      const response = await fetch(`/api/medicines/${form.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           name: form.name,
           dosage: form.dosage || null,
           occurrence: form.occurrence,
@@ -109,12 +113,12 @@ export default function EditMedicinePage() {
           timing: form.timing,
           meal_timing: form.mealTiming,
           notes: form.notes || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', form.id)
-        .eq('user_id', session.user.id);
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Failed to update medicine');
+      }
 
       setMessage({ type: 'success', text: 'Medicine updated successfully!' });
       setTimeout(() => {

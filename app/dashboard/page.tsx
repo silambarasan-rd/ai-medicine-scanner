@@ -45,18 +45,20 @@ export default function DashboardPage() {
         return;
       }
 
-      const { data: medicinesData, error } = await supabase
-        .from('user_medicines')
-        .select('*')
-        .eq('user_id', session.user.id);
+      try {
+        const response = await fetch('/api/medicines');
+        if (!response.ok) {
+          throw new Error('Failed to fetch medicines');
+        }
 
-      if (error) {
+        const medicinesData = await response.json();
+
+        if (medicinesData) {
+          setMedicines(medicinesData);
+          generateEvents(medicinesData);
+        }
+      } catch (error) {
         console.error('Error loading medicines:', error);
-      }
-
-      if (medicinesData) {
-        setMedicines(medicinesData);
-        generateEvents(medicinesData);
       }
 
       setLoading(false);

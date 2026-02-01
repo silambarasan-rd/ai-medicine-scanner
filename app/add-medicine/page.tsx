@@ -80,20 +80,26 @@ export default function AddMedicinePage() {
         return;
       }
 
-      const { error } = await supabase.from('user_medicines').insert({
-        user_id: session.user.id,
-        name: form.name,
-        dosage: form.dosage || null,
-        occurrence: form.occurrence,
-        custom_occurrence: form.customOccurrence || null,
-        scheduled_date: form.scheduledDate,
-        timing: form.timing,
-        meal_timing: form.mealTiming,
-        notes: form.notes || null,
-        created_at: new Date().toISOString(),
+      const response = await fetch('/api/medicines', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: form.name,
+          dosage: form.dosage || null,
+          occurrence: form.occurrence,
+          custom_occurrence: form.customOccurrence || null,
+          scheduled_date: form.scheduledDate,
+          timing: form.timing,
+          meal_timing: form.mealTiming,
+          notes: form.notes || null,
+        }),
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Failed to add medicine');
+      }
 
       setMessage({ type: 'success', text: 'Medicine added successfully!' });
       setTimeout(() => {

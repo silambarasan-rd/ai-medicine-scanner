@@ -38,32 +38,33 @@ export default function ProfilePage() {
         return;
       }
 
-      const { data: existingProfile, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
+      try {
+        const response = await fetch('/api/profile');
+        if (!response.ok) {
+          throw new Error('Failed to fetch profile');
+        }
 
-      if (error && error.code !== 'PGRST116') {
+        const existingProfile = await response.json();
+
+        if (existingProfile && existingProfile.id) {
+          setProfile({
+            id: session.user.id,
+            email: session.user.email || '',
+            name: existingProfile.name || '',
+            phone: existingProfile.phone || '',
+            emergency_contact: existingProfile.emergency_contact || '',
+            medical_conditions: existingProfile.medical_conditions || '',
+            profile_picture_url: existingProfile.profile_picture_url || '',
+          });
+        } else {
+          setProfile(prev => ({
+            ...prev,
+            id: session.user.id,
+            email: session.user.email || '',
+          }));
+        }
+      } catch (error) {
         console.error('Error loading profile:', error);
-      }
-
-      if (existingProfile) {
-        setProfile({
-          id: session.user.id,
-          email: session.user.email || '',
-          name: existingProfile.name || '',
-          phone: existingProfile.phone || '',
-          emergency_contact: existingProfile.emergency_contact || '',
-          medical_conditions: existingProfile.medical_conditions || '',
-          profile_picture_url: existingProfile.profile_picture_url || '',
-        });
-      } else {
-        setProfile(prev => ({
-          ...prev,
-          id: session.user.id,
-          email: session.user.email || '',
-        }));
       }
 
       setLoading(false);
@@ -85,37 +86,23 @@ export default function ProfilePage() {
 
     try {
       setSaving(true);
-      const fileName = `${profile.id}-${Date.now()}`;
-      const { error: uploadError } = await supabase.storage
-        .from('profile-pictures')
-        .upload(fileName, file, { upsert: true });
+      const formData = new FormData();
+      formData.append('file', file);
 
-      if (uploadError) throw uploadError;
+      const response = await fetch('/api/profile/upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('profile-pictures')
-        .getPublicUrl(fileName);
+      if (!response.ok) {
+        throw new Error('Failed to upload profile picture');
+      }
 
-      // Save the URL to database immediately
-      const { error: updateError } = await supabase
-        .from('user_profiles')
-        .upsert({
-          id: profile.id,
-          email: profile.email,
-          name: profile.name,
-          phone: profile.phone,
-          emergency_contact: profile.emergency_contact,
-          medical_conditions: profile.medical_conditions,
-          profile_picture_url: publicUrl,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', profile.id);
-
-      if (updateError) throw updateError;
+      const data = await response.json();
 
       setProfile(prev => ({
         ...prev,
-        profile_picture_url: publicUrl,
+        profile_picture_url: data.profile_picture_url,
       }));
 
       setMessage({ type: 'success', text: 'Profile picture updated successfully' });
@@ -132,21 +119,23 @@ export default function ProfilePage() {
       setSaving(true);
       setMessage(null);
 
-      const { error } = await supabase
-        .from('user_profiles')
-        .upsert({
-          id: profile.id,
-          email: profile.email,
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           name: profile.name,
           phone: profile.phone,
           emergency_contact: profile.emergency_contact,
           medical_conditions: profile.medical_conditions,
           profile_picture_url: profile.profile_picture_url,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', profile.id);
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Failed to save profile');
+      }
 
       setMessage({ type: 'success', text: 'Profile saved successfully!' });
     } catch (err) {

@@ -31,17 +31,17 @@ export default function DigitalCabinetPage() {
         return;
       }
 
-      const { data: medicinesData, error } = await supabase
-        .from('user_medicines')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false });
+      try {
+        const response = await fetch('/api/medicines');
+        if (!response.ok) {
+          throw new Error('Failed to fetch medicines');
+        }
 
-      if (error) {
+        const medicinesData = await response.json();
+        setMedicines(medicinesData || []);
+      } catch (error) {
         console.error('Error loading medicines:', error);
         setMessage({ type: 'error', text: 'Failed to load medicines' });
-      } else {
-        setMedicines(medicinesData || []);
       }
 
       setLoading(false);
@@ -57,12 +57,13 @@ export default function DigitalCabinetPage() {
 
     try {
       setDeletingId(medicineId);
-      const { error } = await supabase
-        .from('user_medicines')
-        .delete()
-        .eq('id', medicineId);
+      const response = await fetch(`/api/medicines/${medicineId}`, {
+        method: 'DELETE',
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Failed to delete medicine');
+      }
 
       setMedicines(medicines.filter(m => m.id !== medicineId));
       setMessage({ type: 'success', text: 'Medicine deleted successfully' });
