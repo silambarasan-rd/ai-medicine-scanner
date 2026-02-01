@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '../utils/supabase/client';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 interface Medicine {
   id: string;
@@ -80,11 +81,7 @@ export default function DigitalCabinetPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading medicines...</p>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '../utils/supabase/client';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 interface UserProfile {
   id: string;
@@ -147,11 +148,7 @@ export default function ProfilePage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading profile...</p>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
