@@ -2,32 +2,34 @@
 
 ## Overview
 
-Fully functional push notification system using **Supabase + Web Push + GitHub Actions** (no third-party services like Firebase needed).
+Fully functional push notification system using **Supabase + Web Push + cron-job.org** (no third-party services like Firebase needed).
 
 ## Technology Stack
 
 - **Web Push API** - Browser native push (uses `npm:web-push@3.6.7` in edge function)
 - **PostgreSQL** - Queue management with auto-generating triggers
 - **Supabase Edge Functions** - Deno runtime with npm package support
-- **GitHub Actions** - Cron scheduler (every minute)
-- **Service Worker** - Client-side push handler (`sw-push.js`)
+- **cron-job.org** - Reliable cron scheduler (every minute, better than GitHub Actions)
+- **Service Worker** - Client-side push handler (`sw-push.js` for dev, `sw.js` for prod)
 
 ## High-Level Flow
 
 ```
-User adds medicine
+User adds medicine (timezone auto-detected)
     ↓
-DB trigger auto-creates notification_queue entries
+DB trigger auto-creates first notification_queue entry
     ↓
-GitHub Actions cron (every minute)
+cron-job.org triggers edge function (every minute)
     ↓
-Calls Supabase Edge Function
+Edge function filters ready notifications (UTC comparison)
     ↓
 Edge function uses web-push library to send
     ↓
 Service worker receives & displays notification
     ↓
 User clicks → Confirmation modal → Saved to DB
+    ↓
+Edge function generates next occurrence (recurring only)
     ↓
 Calendar shows ✓/✗ status
 ```

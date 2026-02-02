@@ -209,6 +209,65 @@ serve(async (req) => {
           .update({ sent_at: nowISO })
           .eq('id', notification.id);
 
+        // Generate next occurrence for recurring medicines (only for confirmation type)
+        if (notification.notification_type === 'confirmation' && notification.user_medicines.occurrence !== 'once') {
+          try {
+            const medicine = notification.user_medicines;
+            const currentScheduledTime = new Date(notification.scheduled_datetime);
+            let nextScheduledTime = new Date(currentScheduledTime);
+
+            // Calculate next occurrence based on medicine type
+            if (medicine.occurrence === 'daily') {
+              nextScheduledTime.setDate(nextScheduledTime.getDate() + 1);
+            } else if (medicine.occurrence === 'weekly') {
+              nextScheduledTime.setDate(nextScheduledTime.getDate() + 7);
+            } else if (medicine.occurrence === 'monthly') {
+              nextScheduledTime.setMonth(nextScheduledTime.getMonth() + 1);
+            }
+
+            const nextScheduledISO = nextScheduledTime.toISOString();
+            const reminderMinutes = medicine.meal_timing === 'after' ? 30 : 15;
+
+            // Insert reminder for next occurrence
+            const reminderResult = await supabaseClient
+              .from('notification_queue')
+              .insert({
+                user_id: notification.user_id,
+                medicine_id: notification.medicine_id,
+                scheduled_datetime: nextScheduledISO,
+                notification_type: 'reminder',
+                minutes_before: reminderMinutes
+              });
+
+            if (reminderResult.error) {
+              throw new Error(`Failed to insert reminder: ${reminderResult.error.message}`);
+            }
+
+            // Insert confirmation for next occurrence
+            const confirmationResult = await supabaseClient
+              .from('notification_queue')
+              .insert({
+                user_id: notification.user_id,
+                medicine_id: notification.medicine_id,
+                scheduled_datetime: nextScheduledISO,
+                notification_type: 'confirmation',
+                minutes_before: 0
+              });
+
+            if (confirmationResult.error) {
+              throw new Error(`Failed to insert confirmation: ${confirmationResult.error.message}`);
+            }
+
+            console.log('✓ Generated next occurrence:', {
+              medicineId: notification.medicine_id,
+              nextScheduled: nextScheduledISO
+            });
+          } catch (error) {
+            console.error('⚠ Failed to generate next occurrence:', error);
+            // Don't throw - continue processing other notifications
+          }
+        }
+
         results.push({
           notificationId: notification.id,
           medicineId: notification.medicine_id,

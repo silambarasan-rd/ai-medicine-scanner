@@ -6,27 +6,31 @@ CREATE POLICY "Users can insert own notifications"
 ON notification_queue FOR INSERT
 WITH CHECK (auth.uid() = user_id);
 
+-- Add INSERT policy for service role to generate next occurrences
+CREATE POLICY "Service role can insert notifications"
+ON notification_queue FOR INSERT
+WITH CHECK (auth.jwt()->>'role' = 'service_role');
+
 -- Add UPDATE policy for edge functions to mark as sent
 CREATE POLICY "Service role can update notifications"
 ON notification_queue FOR UPDATE
 USING (auth.jwt()->>'role' = 'service_role');
 
--- Recreate trigger function to handle both INSERT and UPDATE
+-- Recreate trigger function to create only first occurrence
 CREATE OR REPLACE FUNCTION generate_notification_queue()
 RETURNS TRIGGER AS $$
 DECLARE
   scheduled_dt TIMESTAMP WITH TIME ZONE;
   reminder_minutes INTEGER;
 BEGIN
-  -- If updating, first delete old notifications
+  -- If updating, delete old pending notifications
   IF TG_OP = 'UPDATE' THEN
     DELETE FROM notification_queue 
     WHERE medicine_id = OLD.id 
     AND sent_at IS NULL;
   END IF;
   
-  -- Combine scheduled_date and timing into a full datetime (assumes user's local timezone stored as UTC)
-  -- Convert to proper TIMESTAMP WITH TIME ZONE
+  -- Combine scheduled_date and timing into a full datetime
   scheduled_dt := (NEW.scheduled_date::TEXT || ' ' || NEW.timing::TEXT)::TIMESTAMP AT TIME ZONE 'UTC';
   
   -- Determine reminder time based on meal timing
@@ -36,13 +40,16 @@ BEGIN
     reminder_minutes := 15;
   END IF;
   
-  -- Insert reminder notification (e.g., 30 or 15 mins before)
-  INSERT INTO notification_queue (user_id, medicine_id, scheduled_datetime, notification_type, minutes_before)
-  VALUES (NEW.user_id, NEW.id, scheduled_dt, 'reminder', reminder_minutes);
-  
-  -- Insert confirmation notification (at exact time)
-  INSERT INTO notification_queue (user_id, medicine_id, scheduled_datetime, notification_type, minutes_before)
-  VALUES (NEW.user_id, NEW.id, scheduled_dt, 'confirmation', 0);
+  -- Only create entries if the scheduled time is in the future
+  IF scheduled_dt > NOW() THEN
+    -- Insert reminder notification
+    INSERT INTO notification_queue (user_id, medicine_id, scheduled_datetime, notification_type, minutes_before)
+    VALUES (NEW.user_id, NEW.id, scheduled_dt, 'reminder', reminder_minutes);
+    
+    -- Insert confirmation notification (at exact time)
+    INSERT INTO notification_queue (user_id, medicine_id, scheduled_datetime, notification_type, minutes_before)
+    VALUES (NEW.user_id, NEW.id, scheduled_dt, 'confirmation', 0);
+  END IF;
   
   RETURN NEW;
 END;
