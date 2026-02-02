@@ -48,6 +48,7 @@ interface ConfirmationData {
   scheduledDatetime: string;
   medicineName: string;
   dosage?: string;
+  mealTiming?: string;
 }
 
 function DashboardContent() {
@@ -91,16 +92,14 @@ function DashboardContent() {
         setNotificationsEnabled(status.subscribed);
 
         // Setup service worker listener for confirmation modal
-        setupServiceWorkerListener((medicineId, scheduledDatetime) => {
-          const medicine = medicinesData.find((m: any) => m.id === medicineId);
-          if (medicine) {
-            setConfirmationModal({
-              medicineId,
-              scheduledDatetime,
-              medicineName: medicine.name,
-              dosage: medicine.dosage
-            });
-          }
+        setupServiceWorkerListener((medicineId, scheduledDatetime, medicineName, dosage, mealTiming) => {
+          setConfirmationModal({
+            medicineId,
+            scheduledDatetime,
+            medicineName: medicineName || medicines.find((m: any) => m.id === medicineId)?.name || '',
+            dosage: dosage || medicines.find((m: any) => m.id === medicineId)?.dosage,
+            mealTiming: mealTiming || medicines.find((m: any) => m.id === medicineId)?.meal_timing
+          });
         });
 
         // Check if opened from notification with query params
@@ -113,7 +112,8 @@ function DashboardContent() {
               medicineId: confirmId,
               scheduledDatetime: confirmTime,
               medicineName: medicine.name,
-              dosage: medicine.dosage
+              dosage: medicine.dosage,
+              mealTiming: medicine.meal_timing
             });
           }
         }
@@ -512,6 +512,7 @@ function DashboardContent() {
           medicineId={confirmationModal.medicineId}
           scheduledDatetime={confirmationModal.scheduledDatetime}
           dosage={confirmationModal.dosage}
+          mealTiming={confirmationModal.mealTiming}
           onConfirm={handleConfirmMedicine}
         />
       )}

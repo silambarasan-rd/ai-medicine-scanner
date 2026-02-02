@@ -4,7 +4,7 @@
 
 // Handle push notification events
 self.addEventListener('push', function(event) {
-  console.log('Push notification received:', event);
+  console.log('Push notification received:', event, event.data);
   
   let notificationData = {
     title: 'Medicine Reminder',
@@ -54,7 +54,7 @@ self.addEventListener('notificationclick', function(event) {
   const data = event.notification.data || {};
   const medicineId = data.medicineId;
   const scheduledDatetime = data.scheduledDatetime;
-  const notificationType = data.notificationType;
+  const notificationType = data.data.notificationType;
   const action = event.action; // 'taken', 'skip', or empty (clicked notification body)
 
   // Handle action button clicks
@@ -78,34 +78,84 @@ self.addEventListener('notificationclick', function(event) {
     return;
   }
 
-  // Build URL with query parameters for dashboard
-  let url = '/dashboard';
-  if (medicineId && scheduledDatetime && notificationType === 'confirmation') {
-    url += `?confirm=${medicineId}&time=${encodeURIComponent(scheduledDatetime)}`;
+  // Build URL based on notification type
+  let url = data.url || '/dashboard';
+  
+  // For confirmation notifications, add query params
+  if (notificationType === 'confirmation' && medicineId && scheduledDatetime) {
+    url = `/dashboard?confirm=${medicineId}&time=${encodeURIComponent(scheduledDatetime)}`;
+  }
+  // For reminder notifications, go to medicine details page
+  else if (notificationType === 'reminder' && medicineId) {
+    url = `/medicine-details/${medicineId}`;
   }
 
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
-      // Check if there's already a window open
-      for (let i = 0; i < clientList.length; i++) {
-        const client = clientList[i];
-        if (client.url.includes('/dashboard') && 'focus' in client) {
-          return client.focus().then(client => {
-            // Send message to the client to show confirmation modal
-            if (medicineId && scheduledDatetime && notificationType === 'confirmation') {
+    clients.matchAll({ type: 'window' }).then(function(clientList) {
+      console.log(`Found ${clientList.length} open windows`);
+      console.log('Notification type:', notificationType);
+      console.log('Medicine ID:', medicineId);
+      console.log('Scheduled datetime:', scheduledDatetime);
+      
+      // For confirmation notifications, try to focus existing dashboard window
+      if (notificationType === 'confirmation') {
+        console.log('This is a confirmation notification, looking for dashboard...');
+        for (let i = 0; i < clientList.length; i++) {
+          const client = clientList[i];
+          // Check for both '/' and '/dashboard' since they route to the same page
+          const clientUrl = new URL(client.url);
+          const isDashboard = clientUrl.pathname === '/' || clientUrl.pathname === '/dashboard';
+          
+          console.log(`Window ${i}: ${clientUrl.pathname} - isDashboard: ${isDashboard}`, client);
+          
+          if (isDashboard && 'focus' in client) {
+            console.log('Found dashboard window, focusing and sending postMessage...');
+            return client.focus().then(client => {
+              // Send message to the client to show confirmation modal
+              console.log('Sending SHOW_CONFIRMATION_MODAL message to client');
               client.postMessage({
                 type: 'SHOW_CONFIRMATION_MODAL',
                 medicineId: medicineId,
+                medicineName: data.medicineName,
+                dosage: data.dosage,
+                mealTiming: data.mealTiming,
                 scheduledDatetime: scheduledDatetime
               });
-            }
-            return client;
-          });
+              return client;
+            });
+          }
         }
+        console.log('No dashboard window found, opening new one');
       }
       
-      // No existing window, open a new one
+      // For reminder notifications, try to focus existing window or open medicine details
+      if (notificationType === 'reminder') {
+        console.log('This is a reminder notification, looking for any open window...');
+        for (let i = 0; i < clientList.length; i++) {
+          const client = clientList[i];
+          if ('focus' in client) {
+            console.log('Found open window, focusing it');
+            return client.focus().then(client => {
+              console.log('Sending SHOW_MEDICINE_DETAILS message to client');
+              client.postMessage({
+                type: 'SHOW_MEDICINE_DETAILS',
+                medicineId: medicineId,
+                medicineName: data.medicineName,
+                dosage: data.dosage,
+                mealTiming: data.mealTiming,
+                scheduledDatetime: scheduledDatetime,
+                url: url
+              });
+              return client;
+            });
+          }
+        }
+        console.log('No open window found, opening new one');
+      }
+      
+      // No existing window or couldn't focus, open a new one
       if (clients.openWindow) {
+        console.log('Opening new window with URL:', url);
         return clients.openWindow(url);
       }
     })

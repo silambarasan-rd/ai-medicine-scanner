@@ -69,7 +69,9 @@ export default function EditMedicinePage() {
           night: { enabled: false, time: '21:00', mealTiming: 'after' },
         };
 
-        (medicine.schedules || []).forEach((schedule: { timing: string; meal_timing: 'before' | 'after' }) => {
+        const scheduleSource = medicine.group?.schedules ?? medicine.schedules ?? [];
+
+        scheduleSource.forEach((schedule: { timing: string; meal_timing: 'before' | 'after' }) => {
           const hour = parseInt(schedule.timing.split(':')[0] || '0', 10);
           if (hour < 12) {
             loadedSchedules.morning = {
@@ -92,14 +94,16 @@ export default function EditMedicinePage() {
           }
         });
 
+        const baseMedicine = medicine.group ?? medicine;
+
         setForm({
-          id: medicine.id,
-          name: medicine.name,
-          dosage: medicine.dosage || '',
-          occurrence: medicine.occurrence || 'daily',
-          customOccurrence: medicine.custom_occurrence || '',
-          scheduledDate: medicine.scheduled_date,
-          notes: medicine.notes || '',
+          id: baseMedicine.id ?? medicine.group_id ?? medicine.id,
+          name: baseMedicine.name,
+          dosage: baseMedicine.dosage || '',
+          occurrence: baseMedicine.occurrence || 'daily',
+          customOccurrence: baseMedicine.custom_occurrence || '',
+          scheduledDate: baseMedicine.scheduled_date,
+          notes: baseMedicine.notes || '',
           schedules: loadedSchedules,
         });
       } catch (error) {
@@ -168,6 +172,9 @@ export default function EditMedicinePage() {
         return;
       }
 
+      // Detect user's timezone
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
       const response = await fetch(`/api/medicines/${form.id}`, {
         method: 'PUT',
         headers: {
@@ -181,6 +188,7 @@ export default function EditMedicinePage() {
           scheduled_date: form.scheduledDate,
           schedules: selectedSchedules,
           notes: form.notes || null,
+          timezone: userTimezone, // Send timezone to backend
         }),
       });
 

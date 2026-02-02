@@ -108,9 +108,11 @@ serve(async (req) => {
         // Prepare notification payload
         const medicine = notification.user_medicines;
         const scheduledTime = new Date(notification.scheduled_datetime);
-        const timeStr = scheduledTime.toLocaleTimeString('en-US', {
+        
+        const timeStr = scheduledTime.toLocaleTimeString('en-IN', {
           hour: '2-digit',
-          minute: '2-digit'
+          minute: '2-digit',
+          timeZone: 'Asia/Kolkata'
         });
 
         let title = '';
@@ -165,9 +167,14 @@ serve(async (req) => {
               tag: `medicine-${payload.medicineId}-${payload.scheduledDatetime}`,
               data: {
                 medicineId: payload.medicineId,
+                medicineName: medicine.name,
+                dosage: medicine.dosage,
+                mealTiming: medicine.meal_timing,
                 scheduledDatetime: payload.scheduledDatetime,
                 notificationType: payload.notificationType,
-                url: '/dashboard'
+                url: payload.notificationType === 'reminder' 
+                  ? `/medicine-details/${payload.medicineId}`
+                  : '/dashboard'
               },
               actions: payload.notificationType === 'confirmation' ? [
                 { action: 'taken', title: '✓ Taken' },

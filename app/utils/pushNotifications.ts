@@ -21,7 +21,8 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     throw new Error('Service workers are not supported');
   }
 
-  const swPath = process.env.NODE_ENV === 'production' ? '/sw.js' : '/sw-push.js';
+  // Always use sw.js - in production it's built from sw-push.js with push handlers
+  const swPath = '/sw.js';
 
   // Register the main service worker
   const registration = await navigator.serviceWorker.register(swPath, {
@@ -201,18 +202,30 @@ async function removeSubscription(subscription: PushSubscription): Promise<void>
 
 // Setup service worker message listener for dashboard
 export function setupServiceWorkerListener(
-  onConfirmationRequest: (medicineId: string, scheduledDatetime: string) => void
+  onConfirmationRequest: (medicineId: string, scheduledDatetime: string, medicineName?: string, dosage?: string, mealTiming?: string) => void
 ) {
   if (!('serviceWorker' in navigator)) {
     return;
   }
 
   navigator.serviceWorker.addEventListener('message', (event) => {
+    console.log('Inside the confirmation modal', event);
+
     if (event.data?.type === 'SHOW_CONFIRMATION_MODAL') {
       onConfirmationRequest(
         event.data.medicineId,
-        event.data.scheduledDatetime
+        event.data.scheduledDatetime,
+        event.data.medicineName,
+        event.data.dosage,
+        event.data.mealTiming
       );
+    } else if (event.data?.type === 'SHOW_MEDICINE_DETAILS') {
+      // For reminder notifications, navigate to medicine details
+      console.log('Received SHOW_MEDICINE_DETAILS message:', event.data);
+      const medicineId = event.data.medicineId;
+      if (medicineId) {
+        window.location.href = `/medicine-details/${medicineId}`;
+      }
     }
   });
 }
