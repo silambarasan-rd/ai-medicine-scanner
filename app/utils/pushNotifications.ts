@@ -21,13 +21,41 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     throw new Error('Service workers are not supported');
   }
 
+  const swPath = process.env.NODE_ENV === 'production' ? '/sw.js' : '/sw-push.js';
+
   // Register the main service worker
-  const registration = await navigator.serviceWorker.register('/sw.js', {
+  const registration = await navigator.serviceWorker.register(swPath, {
     scope: '/'
   });
 
-  // Wait for the service worker to be ready
-  await navigator.serviceWorker.ready;
+  // Wait for the service worker to be ready (with timeout to avoid hanging)
+  try {
+    await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Service worker ready timeout')), 5000)
+      )
+    ]);
+  } catch (error) {
+    console.warn('Service worker not ready yet:', error);
+  }
+
+  if (!registration.active) {
+    const installing = registration.installing || registration.waiting;
+    if (installing) {
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Service worker activation timeout')), 5000);
+        installing.addEventListener('statechange', () => {
+          if (installing.state === 'activated') {
+            clearTimeout(timeout);
+            resolve();
+          }
+        });
+      }).catch((error) => {
+        console.warn('Service worker activation warning:', error);
+      });
+    }
+  }
 
   return registration;
 }
@@ -37,6 +65,10 @@ export async function subscribeToPushNotifications(): Promise<PushSubscription> 
     // First check if VAPID key is set
     if (!VAPID_PUBLIC_KEY) {
       throw new Error('VAPID public key not configured. Check NEXT_PUBLIC_VAPID_PUBLIC_KEY in .env.local');
+    }
+
+    if (!('PushManager' in window)) {
+      throw new Error('Push notifications are not supported in this browser');
     }
 
     // Request permission if not already granted

@@ -33,6 +33,7 @@ serve(async (req) => {
     const nowISO = now.toISOString();
 
     // Get pending notifications that should be sent now
+    // The notification should be sent at: scheduled_datetime - minutes_before
     const { data: notifications, error: fetchError } = await supabaseClient
       .from('notification_queue')
       .select(`
@@ -45,7 +46,6 @@ serve(async (req) => {
         )
       `)
       .is('sent_at', null)
-      .lte('scheduled_datetime', nowISO)
       .limit(100);
 
     if (fetchError) {
@@ -59,9 +59,30 @@ serve(async (req) => {
       );
     }
 
+    // Filter notifications that should be sent now (accounting for minutes_before)
+    const notificationsToSend = notifications.filter(notification => {
+      const scheduledTime = new Date(notification.scheduled_datetime);
+      const sendTime = new Date(scheduledTime.getTime() - (notification.minutes_before * 60 * 1000));
+      const timeDiff = Math.abs(now.getTime() - sendTime.getTime());
+      // Send if within 2 minutes of scheduled send time (allows for cron timing variations)
+      return timeDiff <= 2 * 60 * 1000;
+    });
+
+    console.log(`Found ${notifications.length} pending notifications, ${notificationsToSend.length} ready to send`);
+
+    if (notificationsToSend.length === 0) {
+      return new Response(
+        JSON.stringify({ 
+          message: 'No notifications ready to send at this time',
+          pending: notifications.length
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const results = [];
 
-    for (const notification of notifications) {
+    for (const notification of notificationsToSend) {
       try {
         // Get push subscriptions for this user
         const { data: subscriptions, error: subError } = await supabaseClient
