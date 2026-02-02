@@ -109,9 +109,7 @@ serve(async (req) => {
         const medicine = notification.user_medicines;
         const scheduledTime = new Date(notification.scheduled_datetime);
         
-        // Convert UTC to IST (UTC+5:30)
-        const istTime = new Date(scheduledTime.getTime() + (5.5 * 60 * 60 * 1000));
-        const timeStr = istTime.toLocaleTimeString('en-IN', {
+        const timeStr = scheduledTime.toLocaleTimeString('en-IN', {
           hour: '2-digit',
           minute: '2-digit',
           timeZone: 'Asia/Kolkata'
