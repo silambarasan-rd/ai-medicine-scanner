@@ -25,8 +25,9 @@ BEGIN
     AND sent_at IS NULL;
   END IF;
   
-  -- Combine scheduled_date and timing into a full datetime
-  scheduled_dt := (NEW.scheduled_date || ' ' || NEW.timing)::TIMESTAMP WITH TIME ZONE;
+  -- Combine scheduled_date and timing into a full datetime (assumes user's local timezone stored as UTC)
+  -- Convert to proper TIMESTAMP WITH TIME ZONE
+  scheduled_dt := (NEW.scheduled_date::TEXT || ' ' || NEW.timing::TEXT)::TIMESTAMP AT TIME ZONE 'UTC';
   
   -- Determine reminder time based on meal timing
   IF NEW.meal_timing = 'after' THEN
