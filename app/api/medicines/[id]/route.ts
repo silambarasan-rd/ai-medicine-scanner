@@ -108,7 +108,10 @@ export async function PUT(
 
     // Parse request body
     const body = await request.json();
-    const { name, dosage, occurrence, custom_occurrence, scheduled_date, timing, meal_timing, notes, schedules } = body;
+    const { name, dosage, occurrence, custom_occurrence, scheduled_date, timing, meal_timing, notes, schedules, timezone } = body;
+
+    // Get user timezone (default to UTC if not provided)
+    const userTimezone = timezone || 'UTC';
 
     // Validate required fields
     if (!name || !occurrence || !scheduled_date) {
@@ -164,6 +167,7 @@ export async function PUT(
           timing: schedule.timing,
           meal_timing: schedule.meal_timing,
           notes,
+          timezone: userTimezone, // Store timezone
         }))
       : [
           {
@@ -177,6 +181,7 @@ export async function PUT(
             timing,
             meal_timing,
             notes,
+            timezone: userTimezone, // Store timezone
           },
         ];
 

@@ -172,6 +172,9 @@ export default function EditMedicinePage() {
         return;
       }
 
+      // Detect user's timezone
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
       const response = await fetch(`/api/medicines/${form.id}`, {
         method: 'PUT',
         headers: {
@@ -185,6 +188,7 @@ export default function EditMedicinePage() {
           scheduled_date: form.scheduledDate,
           schedules: selectedSchedules,
           notes: form.notes || null,
+          timezone: userTimezone, // Send timezone to backend
         }),
       });
 
