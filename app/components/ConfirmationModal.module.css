@@ -78,7 +78,7 @@
   padding: 1rem;
   background-color: #f9fafb;
   border-radius: 12px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .medicineIcon {
@@ -98,22 +98,48 @@
   font-size: 0.9rem;
 }
 
-.scheduledTime {
-  margin: 0.5rem 0 0 0;
-  color: #9ca3af;
-  font-size: 0.875rem;
-}
-
-.question {
-  text-align: center;
+.scheduledInfo {
   margin-bottom: 1.5rem;
 }
 
-.question p {
-  font-size: 1.125rem;
+.scheduledTime {
+  margin: 0 0 0.75rem 0;
   color: #374151;
-  margin: 0;
+  font-size: 0.95rem;
+}
+
+.mealBadge {
+  margin-top: 0.5rem;
+}
+
+.statusSection {
+  margin-bottom: 1rem;
+}
+
+.statusSection label {
+  display: block;
+  margin-bottom: 0.5rem;
   font-weight: 500;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.statusSelect {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  background-color: white;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.statusSelect:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .notesSection {
@@ -177,25 +203,25 @@
   cursor: not-allowed;
 }
 
-.skipButton {
+.cancelButton {
   background-color: #f3f4f6;
   color: #374151;
 }
 
-.skipButton:hover:not(:disabled) {
+.cancelButton:hover:not(:disabled) {
   background-color: #e5e7eb;
   transform: translateY(-1px);
 }
 
-.takenButton {
-  background-color: #10b981;
+.confirmButton {
+  background-color: #3b82f6;
   color: white;
 }
 
-.takenButton:hover:not(:disabled) {
-  background-color: #059669;
+.confirmButton:hover:not(:disabled) {
+  background-color: #2563eb;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 @media (max-width: 640px) {

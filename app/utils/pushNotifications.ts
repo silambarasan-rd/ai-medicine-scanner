@@ -201,7 +201,7 @@ async function removeSubscription(subscription: PushSubscription): Promise<void>
 
 // Setup service worker message listener for dashboard
 export function setupServiceWorkerListener(
-  onConfirmationRequest: (medicineId: string, scheduledDatetime: string) => void
+  onConfirmationRequest: (medicineId: string, scheduledDatetime: string, medicineName?: string, dosage?: string, mealTiming?: string) => void
 ) {
   if (!('serviceWorker' in navigator)) {
     return;
@@ -211,7 +211,10 @@ export function setupServiceWorkerListener(
     if (event.data?.type === 'SHOW_CONFIRMATION_MODAL') {
       onConfirmationRequest(
         event.data.medicineId,
-        event.data.scheduledDatetime
+        event.data.scheduledDatetime,
+        event.data.medicineName,
+        event.data.dosage,
+        event.data.mealTiming
       );
     }
   });

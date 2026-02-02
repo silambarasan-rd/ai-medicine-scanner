@@ -50,18 +50,33 @@ export async function GET(
     }
 
     const base = medicines[0];
+    
+    // Return a simplified view for single medicine display
     return NextResponse.json({
-      id: base.group_id,
+      id: base.id,
       name: base.name,
       dosage: base.dosage,
+      timing: base.timing,
+      meal_timing: base.meal_timing,
       occurrence: base.occurrence,
       custom_occurrence: base.custom_occurrence,
       scheduled_date: base.scheduled_date,
       notes: base.notes,
-      schedules: medicines.map((medicine) => ({
-        timing: medicine.timing,
-        meal_timing: medicine.meal_timing,
-      })),
+      created_at: base.created_at,
+      // Also include the grouped format for backward compatibility
+      group: {
+        id: base.group_id,
+        name: base.name,
+        dosage: base.dosage,
+        occurrence: base.occurrence,
+        custom_occurrence: base.custom_occurrence,
+        scheduled_date: base.scheduled_date,
+        notes: base.notes,
+        schedules: medicines.map((medicine) => ({
+          timing: medicine.timing,
+          meal_timing: medicine.meal_timing,
+        })),
+      }
     });
   } catch (error) {
     console.error('Unexpected error in GET /api/medicines/[id]:', error);

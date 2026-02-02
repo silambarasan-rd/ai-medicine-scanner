@@ -78,33 +78,42 @@ self.addEventListener('notificationclick', function(event) {
     return;
   }
 
-  // Build URL with query parameters for dashboard
-  let url = '/dashboard';
-  if (medicineId && scheduledDatetime && notificationType === 'confirmation') {
-    url += `?confirm=${medicineId}&time=${encodeURIComponent(scheduledDatetime)}`;
+  // Build URL based on notification type
+  let url = data.url || '/dashboard';
+  
+  // For confirmation notifications, add query params
+  if (notificationType === 'confirmation' && medicineId && scheduledDatetime) {
+    url = `/dashboard?confirm=${medicineId}&time=${encodeURIComponent(scheduledDatetime)}`;
+  }
+  // For reminder notifications, go to medicine details page
+  else if (notificationType === 'reminder' && medicineId) {
+    url = `/medicine-details/${medicineId}`;
   }
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
-      // Check if there's already a window open
-      for (let i = 0; i < clientList.length; i++) {
-        const client = clientList[i];
-        if (client.url.includes('/dashboard') && 'focus' in client) {
-          return client.focus().then(client => {
-            // Send message to the client to show confirmation modal
-            if (medicineId && scheduledDatetime && notificationType === 'confirmation') {
+      // For confirmation notifications, try to focus existing dashboard window
+      if (notificationType === 'confirmation') {
+        for (let i = 0; i < clientList.length; i++) {
+          const client = clientList[i];
+          if (client.url.includes('/dashboard') && 'focus' in client) {
+            return client.focus().then(client => {
+              // Send message to the client to show confirmation modal
               client.postMessage({
                 type: 'SHOW_CONFIRMATION_MODAL',
                 medicineId: medicineId,
+                medicineName: data.medicineName,
+                dosage: data.dosage,
+                mealTiming: data.mealTiming,
                 scheduledDatetime: scheduledDatetime
               });
-            }
-            return client;
-          });
+              return client;
+            });
+          }
         }
       }
       
-      // No existing window, open a new one
+      // No existing window or reminder notification, open a new one
       if (clients.openWindow) {
         return clients.openWindow(url);
       }
