@@ -12,6 +12,7 @@ import listPlugin from '@fullcalendar/list';
 import styles from './Dashboard.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUtensils, faBell, faBellSlash, faCircle, faTimes, faSlash } from '@fortawesome/free-solid-svg-icons';
+import { toast } from 'react-toastify';
 import {
   subscribeToPushNotifications,
   unsubscribeFromPushNotifications,
@@ -166,21 +167,28 @@ function DashboardContent() {
     if (!confirmationModal) return;
 
     try {
-      const response = await fetch('/api/confirmations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          medicineId: confirmationModal.medicineId,
-          scheduledDatetime: confirmationModal.scheduledDatetime,
-          taken,
-          skipped: !taken,
-          notes
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save confirmation');
-      }
+      await toast.promise(
+        fetch('/api/confirmations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            medicineId: confirmationModal.medicineId,
+            scheduledDatetime: confirmationModal.scheduledDatetime,
+            taken,
+            skipped: !taken,
+            notes
+          })
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error('Failed to save confirmation');
+          }
+          return response;
+        }),
+        {
+          pending: 'Saving confirmation...',
+          success: taken ? 'Marked as taken' : 'Marked as skipped'
+        }
+      );
 
       // Reload confirmations and regenerate events
       await loadConfirmations();
@@ -188,6 +196,7 @@ function DashboardContent() {
       setConfirmationModal(null);
     } catch (error) {
       console.error('Error confirming medicine:', error);
+      toast.error('Failed to save confirmation');
       throw error;
     }
   };

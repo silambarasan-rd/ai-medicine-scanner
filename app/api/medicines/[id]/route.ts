@@ -20,26 +20,56 @@ export async function GET(
 
     const { id } = await params;
 
-    // Fetch the medicine group
-    const { data: medicines, error } = await supabase
+    let medicines: any[] | null = null;
+
+    // Try fetching by group id first
+    const { data: groupMedicines, error: groupError } = await supabase
       .from('user_medicines')
       .select('*')
       .eq('group_id', id)
       .eq('user_id', user.id)
       .order('timing', { ascending: true });
 
-    if (error) {
-      if (error.code === 'PGRST116') {
+    if (groupError) {
+      if (groupError.code === 'PGRST116') {
         return NextResponse.json(
           { error: 'Medicine not found' },
           { status: 404 }
         );
       }
-      console.error('Error fetching medicine:', error);
+      console.error('Error fetching medicine by group_id:', groupError);
       return NextResponse.json(
         { error: 'Failed to fetch medicine' },
         { status: 500 }
       );
+    }
+
+    medicines = groupMedicines;
+
+    if (!medicines || medicines.length === 0) {
+      // Fallback: fetch by row id (used by notifications)
+      const { data: idMedicines, error: idError } = await supabase
+        .from('user_medicines')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .order('timing', { ascending: true });
+
+      if (idError) {
+        if (idError.code === 'PGRST116') {
+          return NextResponse.json(
+            { error: 'Medicine not found' },
+            { status: 404 }
+          );
+        }
+        console.error('Error fetching medicine by id:', idError);
+        return NextResponse.json(
+          { error: 'Failed to fetch medicine' },
+          { status: 500 }
+        );
+      }
+
+      medicines = idMedicines;
     }
 
     if (!medicines || medicines.length === 0) {

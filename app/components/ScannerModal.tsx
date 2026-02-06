@@ -6,8 +6,9 @@ import { createClient } from '../utils/supabase/client';
 
 interface MedicineData {
   brand_name: string;
-  purpose: string;
-  active_ingredient: string;
+  dosage?: string;
+  purpose: string | string[];
+  active_ingredient: string | string[];
   warnings: string[];
   usage_timing: string;
   safety_flags: {
@@ -73,6 +74,13 @@ export default function ScannerModal({ isOpen, onClose, onConfirm }: ScannerModa
     signal: AbortSignal
   ): Promise<MedicineData | null> => {
     try {
+      const normalizeStringArray = (value: unknown): string[] => {
+        if (!value) return [];
+        if (Array.isArray(value)) return value.filter(Boolean).map(String);
+        if (typeof value === 'string') return [value];
+        return [];
+      };
+
       const response = await axios.post('/api/identify', { image: base64Image }, { signal });
       const data = response.data;
 
@@ -81,19 +89,20 @@ export default function ScannerModal({ isOpen, onClose, onConfirm }: ScannerModa
         return null;
       }
 
+      const warnings = normalizeStringArray(data.indications ?? data.warnings);
+      const activeIngredient = normalizeStringArray(
+        data.active_ingredient ?? data.active_ingredients ?? data.activeIngredients ?? data.activeIngredient
+      );
+      const purpose = normalizeStringArray(data.purpose);
+      const dosageValue = data.dosage ?? data.strength ?? data.dose ?? '';
+      const dosage = Array.isArray(dosageValue) ? dosageValue.join(', ') : String(dosageValue || '').trim();
+
       return {
         brand_name: data.brand_name || 'Unknown Medicine',
-        purpose: Array.isArray(data.purpose)
-          ? data.purpose
-          : [data.purpose].filter(Boolean),
-        warnings: Array.isArray(data.indications)
-          ? data.indications
-          : Array.isArray(data.warnings)
-          ? data.warnings
-          : [],
-        active_ingredient: data.active_ingredient
-          ? data.active_ingredient
-          : ['See label for details'],
+        dosage: dosage || undefined,
+        purpose: purpose.length > 0 ? purpose : ['Not specified'],
+        warnings,
+        active_ingredient: activeIngredient.length > 0 ? activeIngredient : ['See label for details'],
         usage_timing: data.usage_timing,
         safety_flags: data.safety_flags || { drive: true, alcohol: true },
       };

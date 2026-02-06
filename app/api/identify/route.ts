@@ -24,6 +24,7 @@ async function identifyWithGemini(image: string) {
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
   const prompt = `Identify the medicine in this image. Return a JSON object with the following keys:
   - brand_name: The name of the medicine
+  - dosage: The strength or dosage (e.g., "500 mg", "10 ml")
   - purpose: What it treats (1 short sentence)
   - active_ingredient: The active ingredient(s)
   - warnings: A brief usage warning
@@ -52,6 +53,7 @@ async function identifyWithOpenAI(image: string) {
 
   const systemMessage = `You are an expert pharmacist AI. Identify the medicine in the image. Return a valid JSON object with these exact keys:
   - brand_name (string) - The name of the medicine
+  - dosage (string) - The strength or dosage (e.g., "500 mg", "10 ml")
   - purpose (string array) - What it treats (1 elaborate short sentence)
   - active_ingredient (string array) - The active ingredient(s)
   - indications (string array, for warnings) - A brief indication or usage warning(s)

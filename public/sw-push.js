@@ -19,17 +19,19 @@ self.addEventListener('push', function(event) {
 
   if (event.data) {
     try {
-      const data = event.data.json();
+      const payload = event.data.json();
+      const payloadData = (payload.data && payload.data.data) || payload.data || payload;
+
       notificationData = {
         ...notificationData,
-        title: data.title || notificationData.title,
-        body: data.body || notificationData.body,
-        tag: data.medicineId || notificationData.tag,
-        data: data
+        title: payload.title || notificationData.title,
+        body: payload.body || notificationData.body,
+        tag: payloadData.medicineId || notificationData.tag,
+        data: payloadData
       };
 
       // Add action buttons for confirmation notifications
-      if (data.notificationType === 'confirmation') {
+      if (payloadData.notificationType === 'confirmation') {
         notificationData.actions = [
           { action: 'taken', title: 'Taken ✓', icon: '/medicine-logo.png' },
           { action: 'skip', title: 'Skip', icon: '/medicine-logo.png' }
@@ -49,12 +51,12 @@ self.addEventListener('push', function(event) {
 // Handle notification click events (including action buttons)
 self.addEventListener('notificationclick', function(event) {
   console.log('Notification clicked:', event);
-  event.notification.close();
 
   const data = event.notification.data || {};
-  const medicineId = data.medicineId;
-  const scheduledDatetime = data.scheduledDatetime;
-  const notificationType = data.data.notificationType;
+  const payloadData = (data.data && data.data.data) || data.data || data;
+  const medicineId = payloadData.medicineId;
+  const scheduledDatetime = payloadData.scheduledDatetime;
+  const notificationType = payloadData.notificationType;
   const action = event.action; // 'taken', 'skip', or empty (clicked notification body)
 
   // Handle action button clicks
@@ -73,13 +75,15 @@ self.addEventListener('notificationclick', function(event) {
         console.log(`Medicine ${action} recorded`);
       }).catch(err => {
         console.error('Error recording confirmation:', err);
+      }).finally(() => {
+        event.notification.close();
       })
     );
     return;
   }
 
   // Build URL based on notification type
-  let url = data.url || '/dashboard';
+  let url = payloadData.url || '/dashboard';
   
   // For confirmation notifications, add query params
   if (notificationType === 'confirmation' && medicineId && scheduledDatetime) {
@@ -91,7 +95,7 @@ self.addEventListener('notificationclick', function(event) {
   }
 
   event.waitUntil(
-    clients.matchAll({ type: 'window' }).then(function(clientList) {
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
       console.log(`Found ${clientList.length} open windows`);
       console.log('Notification type:', notificationType);
       console.log('Medicine ID:', medicineId);
@@ -100,6 +104,7 @@ self.addEventListener('notificationclick', function(event) {
       // For confirmation notifications, try to focus existing dashboard window
       if (notificationType === 'confirmation') {
         console.log('This is a confirmation notification, looking for dashboard...');
+        const dashboardClients = [];
         for (let i = 0; i < clientList.length; i++) {
           const client = clientList[i];
           // Check for both '/' and '/dashboard' since they route to the same page
@@ -108,48 +113,67 @@ self.addEventListener('notificationclick', function(event) {
           
           console.log(`Window ${i}: ${clientUrl.pathname} - isDashboard: ${isDashboard}`, client);
           
-          if (isDashboard && 'focus' in client) {
-            console.log('Found dashboard window, focusing and sending postMessage...');
-            return client.focus().then(client => {
-              // Send message to the client to show confirmation modal
-              console.log('Sending SHOW_CONFIRMATION_MODAL message to client');
-              client.postMessage({
-                type: 'SHOW_CONFIRMATION_MODAL',
-                medicineId: medicineId,
-                medicineName: data.medicineName,
-                dosage: data.dosage,
-                mealTiming: data.mealTiming,
-                scheduledDatetime: scheduledDatetime
-              });
-              return client;
-            });
+          if (isDashboard) {
+            dashboardClients.push(client);
           }
         }
+
+        if (dashboardClients.length > 0) {
+          console.log(`Found ${dashboardClients.length} dashboard window(s), sending postMessage...`);
+          dashboardClients.forEach((client) => {
+            client.postMessage({
+              type: 'SHOW_CONFIRMATION_MODAL',
+              medicineId: medicineId,
+              medicineName: payloadData.medicineName,
+              dosage: payloadData.dosage,
+              mealTiming: payloadData.mealTiming,
+              scheduledDatetime: scheduledDatetime
+            });
+          });
+
+          const primaryClient = dashboardClients[0];
+          if ('focus' in primaryClient) {
+            console.log('Focusing dashboard window...');
+            return primaryClient.focus().catch((err) => {
+              console.warn('Error focusing dashboard window:', err);
+            });
+          }
+
+          return;
+        }
+
         console.log('No dashboard window found, opening new one');
       }
       
-      // For reminder notifications, try to focus existing window or open medicine details
+      // For reminder notifications, notify any open window and focus one if possible
       if (notificationType === 'reminder') {
         console.log('This is a reminder notification, looking for any open window...');
-        for (let i = 0; i < clientList.length; i++) {
-          const client = clientList[i];
-          if ('focus' in client) {
-            console.log('Found open window, focusing it');
-            return client.focus().then(client => {
-              console.log('Sending SHOW_MEDICINE_DETAILS message to client');
-              client.postMessage({
-                type: 'SHOW_MEDICINE_DETAILS',
-                medicineId: medicineId,
-                medicineName: data.medicineName,
-                dosage: data.dosage,
-                mealTiming: data.mealTiming,
-                scheduledDatetime: scheduledDatetime,
-                url: url
-              });
-              return client;
+
+        if (clientList.length > 0) {
+          console.log(`Found ${clientList.length} open window(s), sending postMessage...`);
+          clientList.forEach((client) => {
+            client.postMessage({
+              type: 'SHOW_MEDICINE_DETAILS',
+              medicineId: medicineId,
+              medicineName: payloadData.medicineName,
+              dosage: payloadData.dosage,
+              mealTiming: payloadData.mealTiming,
+              scheduledDatetime: scheduledDatetime,
+              url: url
+            });
+          });
+
+          const primaryClient = clientList[0];
+          if ('focus' in primaryClient) {
+            console.log('Focusing open window...');
+            return primaryClient.focus().catch((err) => {
+              console.warn('Error focusing open window:', err);
             });
           }
+
+          return;
         }
+
         console.log('No open window found, opening new one');
       }
       
@@ -158,6 +182,8 @@ self.addEventListener('notificationclick', function(event) {
         console.log('Opening new window with URL:', url);
         return clients.openWindow(url);
       }
+    }).finally(() => {
+      event.notification.close();
     })
   );
 });

@@ -10,7 +10,7 @@ interface LoadingSpinnerProps {
 export default function LoadingSpinner({ color = '#3e4c5e', backgroundColor }: LoadingSpinnerProps) {
   return (
     <div className={`min-h-screen flex items-center justify-center ${backgroundColor || ''}`}>
-      <HashLoader color={color} size={60} />
+      <HashLoader color={color} size={35} />
     </div>
   );
 }

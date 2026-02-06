@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '../../utils/supabase/client';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { toast } from 'react-toastify';
 
 interface MedicineForm {
   id: string;
@@ -26,7 +27,6 @@ export default function EditMedicinePage() {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const [form, setForm] = useState<MedicineForm>({
     id: '',
@@ -108,7 +108,7 @@ export default function EditMedicinePage() {
         });
       } catch (error) {
         console.error('Error loading medicine:', error);
-        setMessage({ type: 'error', text: 'Medicine not found' });
+        toast.error('Medicine not found');
         setTimeout(() => router.push('/digital-cabinet'), 2000);
         return;
       }
@@ -147,7 +147,7 @@ export default function EditMedicinePage() {
     e.preventDefault();
 
     if (!form.name.trim()) {
-      setMessage({ type: 'error', text: 'Medicine name is required' });
+      toast.error('Medicine name is required');
       return;
     }
 
@@ -160,7 +160,7 @@ export default function EditMedicinePage() {
       }));
 
     if (selectedSchedules.length === 0) {
-      setMessage({ type: 'error', text: 'Select at least one time of day' });
+      toast.error('Select at least one time of day');
       return;
     }
 
@@ -175,34 +175,39 @@ export default function EditMedicinePage() {
       // Detect user's timezone
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      const response = await fetch(`/api/medicines/${form.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: form.name,
-          dosage: form.dosage || null,
-          occurrence: form.occurrence,
-          custom_occurrence: form.customOccurrence || null,
-          scheduled_date: form.scheduledDate,
-          schedules: selectedSchedules,
-          notes: form.notes || null,
-          timezone: userTimezone, // Send timezone to backend
+      await toast.promise(
+        fetch(`/api/medicines/${form.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: form.name,
+            dosage: form.dosage || null,
+            occurrence: form.occurrence,
+            custom_occurrence: form.customOccurrence || null,
+            scheduled_date: form.scheduledDate,
+            schedules: selectedSchedules,
+            notes: form.notes || null,
+            timezone: userTimezone, // Send timezone to backend
+          }),
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error('Failed to update medicine');
+          }
+          return response;
         }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update medicine');
-      }
-
-      setMessage({ type: 'success', text: 'Medicine updated successfully!' });
+        {
+          pending: 'Updating medicine...',
+          success: 'Medicine updated successfully!'
+        }
+      );
       setTimeout(() => {
         router.push('/digital-cabinet');
       }, 1500);
     } catch (err) {
       console.error('Error updating medicine:', err);
-      setMessage({ type: 'error', text: 'Failed to update medicine. Please try again.' });
+      toast.error('Failed to update medicine. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -217,18 +222,6 @@ export default function EditMedicinePage() {
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6 sm:p-8">
           <h1 className="text-3xl font-bold text-deep-space-blue mb-8">✏️ Edit Medicine</h1>
-
-          {message && (
-            <div
-              className={`p-4 rounded-lg mb-6 ${
-                message.type === 'success'
-                  ? 'bg-green-50 border border-green-200 text-green-800'
-                  : 'bg-red-50 border border-red-200 text-red-800'
-              }`}
-            >
-              {message.text}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Medicine Name */}

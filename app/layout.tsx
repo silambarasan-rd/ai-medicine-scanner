@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import ServiceWorkerRegistrar from "./components/ServiceWorkerRegistrar";
 import Navbar from "./components/Navbar";
+import ToastProvider from "./components/ToastProvider";
 
 export const metadata: Metadata = {
   title: "MathirAI",
@@ -43,6 +44,7 @@ export default function RootLayout({
       <body className="antialiased">
         <Navbar />
         {children}
+        <ToastProvider />
         <ServiceWorkerRegistrar />
       </body>
     </html>

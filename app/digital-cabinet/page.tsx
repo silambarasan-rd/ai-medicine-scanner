@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '../utils/supabase/client';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { toast } from 'react-toastify';
 
 interface Medicine {
   id: string;
@@ -36,7 +37,6 @@ export default function DigitalCabinetPage() {
   const [medicines, setMedicines] = useState<MedicineGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     const loadMedicines = async () => {
@@ -79,7 +79,7 @@ export default function DigitalCabinetPage() {
         setMedicines(groupedList);
       } catch (error) {
         console.error('Error loading medicines:', error);
-        setMessage({ type: 'error', text: 'Failed to load medicines' });
+        toast.error('Failed to load medicines');
       }
 
       setLoading(false);
@@ -95,19 +95,25 @@ export default function DigitalCabinetPage() {
 
     try {
       setDeletingId(medicineId);
-      const response = await fetch(`/api/medicines/${medicineId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete medicine');
-      }
+      await toast.promise(
+        fetch(`/api/medicines/${medicineId}`, {
+          method: 'DELETE',
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error('Failed to delete medicine');
+          }
+          return response;
+        }),
+        {
+          pending: 'Deleting medicine...',
+          success: 'Medicine deleted successfully!'
+        }
+      );
 
       setMedicines(medicines.filter(m => m.id !== medicineId));
-      setMessage({ type: 'success', text: 'Medicine deleted successfully' });
     } catch (err) {
       console.error('Error deleting medicine:', err);
-      setMessage({ type: 'error', text: 'Failed to delete medicine' });
+      toast.error('Failed to delete medicine');
     } finally {
       setDeletingId(null);
     }
@@ -115,6 +121,10 @@ export default function DigitalCabinetPage() {
 
   const handleEdit = (medicineId: string) => {
     router.push(`/edit-medicine/${medicineId}`);
+  };
+
+  const handleView = (medicineId: string) => {
+    router.push(`/medicine-details/${medicineId}`);
   };
 
   if (loading) {
@@ -138,18 +148,6 @@ export default function DigitalCabinetPage() {
           </button>
         </div>
 
-        {message && (
-          <div
-            className={`p-4 rounded-lg mb-6 ${
-              message.type === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-800'
-                : 'bg-red-50 border border-red-200 text-red-800'
-            }`}
-          >
-            {message.text}
-          </div>
-        )}
-
         {medicines.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-12 text-center">
             <p className="text-gray-500 text-lg mb-4">No medicines in your cabinet yet</p>
@@ -166,7 +164,13 @@ export default function DigitalCabinetPage() {
               <div key={medicine.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-bold text-deep-space-blue">{medicine.name}</h3>
+                    <button
+                      type="button"
+                      onClick={() => handleView(medicine.id)}
+                      className="text-left text-xl font-bold text-deep-space-blue hover:underline"
+                    >
+                      {medicine.name}
+                    </button>
                     {medicine.dosage && (
                       <p className="text-sm text-blue-slate mt-1">Dosage: {medicine.dosage}</p>
                     )}
