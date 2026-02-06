@@ -21,8 +21,9 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     throw new Error('Service workers are not supported');
   }
 
-  // Always use sw.js - in production it's built from sw-push.js with push handlers
-  const swPath = '/sw.js';
+  // Use a lightweight SW in dev; production uses the precached SW build
+  const isProduction = process.env.NODE_ENV === 'production';
+  const swPath = isProduction ? '/sw.js' : '/sw-push.js';
 
   // Register the main service worker
   const registration = await navigator.serviceWorker.register(swPath, {
@@ -56,6 +57,10 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
         console.warn('Service worker activation warning:', error);
       });
     }
+  }
+
+  if (!registration.active) {
+    throw new Error('Service worker is not active. Reload the page and try again.');
   }
 
   return registration;
