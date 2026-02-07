@@ -3,6 +3,8 @@
 import React, { useRef, useState, useCallback } from 'react';
 import axios from 'axios';
 import { createClient } from '../utils/supabase/client';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCar, faTriangleExclamation, faWineGlass } from '@fortawesome/free-solid-svg-icons';
 
 interface MedicineData {
   brand_name: string;
@@ -332,13 +334,17 @@ export default function ScannerModal({ isOpen, onClose, onConfirm }: ScannerModa
           <div className="flex gap-2">
             {!scanResult.safety_flags.drive && (
               <div className="flex-1 bg-red-100 border border-red-300 rounded-lg p-3 text-center">
-                <div className="text-2xl mb-1">🚗</div>
+                <div className="text-2xl mb-1">
+                  <FontAwesomeIcon icon={faCar} className="fa-1x" />
+                </div>
                 <p className="text-xs font-bold text-red-700">Do Not Drive</p>
               </div>
             )}
             {!scanResult.safety_flags.alcohol && (
               <div className="flex-1 bg-red-100 border border-red-300 rounded-lg p-3 text-center">
-                <div className="text-2xl mb-1">🍷</div>
+                <div className="text-2xl mb-1">
+                  <FontAwesomeIcon icon={faWineGlass} className="fa-1x" />
+                </div>
                 <p className="text-xs font-bold text-red-700">No Alcohol</p>
               </div>
             )}
@@ -356,7 +362,10 @@ export default function ScannerModal({ isOpen, onClose, onConfirm }: ScannerModa
 
           {scanResult.warnings.length > 0 && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <h3 className="font-semibold text-yellow-900 text-sm mb-2">⚠️ Warnings</h3>
+              <h3 className="font-semibold text-yellow-900 text-sm mb-2 flex items-center gap-2">
+                <FontAwesomeIcon icon={faTriangleExclamation} className="fa-1x" />
+                Warnings
+              </h3>
               <ul className="text-xs text-yellow-800 space-y-1">
                 {scanResult.warnings.map((warning, idx) => (
                   <li key={idx} className="flex items-start">

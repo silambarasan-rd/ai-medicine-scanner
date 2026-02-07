@@ -5,6 +5,8 @@ import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '../../utils/supabase/client';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { toast } from 'react-toastify';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheck, faCapsules } from '@fortawesome/free-solid-svg-icons';
 
 interface MedicineForm {
   id: string;
@@ -291,7 +293,10 @@ export default function EditMedicinePage() {
     <div className="min-h-screen bg-rosy-granite/5 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6 sm:p-8">
-          <h1 className="text-3xl font-bold text-deep-space-blue mb-8">✏️ Edit Medication</h1>
+          <h1 className="text-3xl font-bold text-deep-space-blue mb-8 flex items-center gap-2">
+            <FontAwesomeIcon icon={faCapsules} className="fa-1x" />
+            Edit Medication
+          </h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Pharmacy Medicine Selection */}
@@ -487,7 +492,12 @@ export default function EditMedicinePage() {
                     : 'bg-charcoal-blue hover:bg-deep-space-blue'
                 }`}
               >
-                {saving ? 'Updating...' : '✅ Update Medication'}
+                {saving ? 'Updating...' : (
+                  <span className="inline-flex items-center gap-2">
+                    <FontAwesomeIcon icon={faCheck} className="fa-1x" />
+                    Update Medication
+                  </span>
+                )}
               </button>
               <button
                 type="button"

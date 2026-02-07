@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import styles from './ConfirmationModal.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUtensils, faCircle, faSlash } from '@fortawesome/free-solid-svg-icons';
+import { faCapsules, faUtensils, faCircle, faSlash } from '@fortawesome/free-solid-svg-icons';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -79,7 +79,9 @@ export default function ConfirmationModal({
 
         <div className={styles.modalBody}>
           <div className={styles.medicineInfo}>
-            <div className={styles.medicineIcon}>💊</div>
+            <div className={styles.medicineIcon}>
+              <FontAwesomeIcon icon={faCapsules} className="fa-1x" />
+            </div>
             <div>
               <h3>{medicineName}</h3>
               {dosage && <p className={styles.dosage}>{dosage}</p>}
@@ -94,7 +96,7 @@ export default function ConfirmationModal({
               <div className={styles.mealBadge}>
                 {mealTiming === 'after' ? (
                   <span className="inline-flex items-center rounded-md bg-green-50 px-3 py-1 text-sm font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                    <FontAwesomeIcon icon={faUtensils} className="mr-1" />
+                    <FontAwesomeIcon icon={faUtensils} className="mr-1 fa-1x" />
                     After Meal
                   </span>
                 ) : (
@@ -120,7 +122,7 @@ export default function ConfirmationModal({
               className={styles.statusSelect}
             >
               <option value="">Select status...</option>
-              <option value="taken">Taken ✓</option>
+              <option value="taken">Taken</option>
               <option value="skipped">Skipped</option>
             </select>
           </div>

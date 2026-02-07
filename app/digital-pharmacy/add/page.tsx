@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '../../utils/supabase/client';
 import ScannerModal from '../../components/ScannerModal';
 import { toast } from 'react-toastify';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCamera, faCapsules } from '@fortawesome/free-solid-svg-icons';
 
 interface MedicineData {
   brand_name: string;
@@ -191,7 +193,10 @@ export default function AddPharmacyMedicinePage() {
     <div className="min-h-screen bg-rosy-granite/5 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6 sm:p-8">
-          <h1 className="text-3xl font-bold text-deep-space-blue mb-8">🧪 Add Pharmacy Medicine</h1>
+          <h1 className="text-3xl font-bold text-deep-space-blue mb-8 flex items-center gap-2">
+            <FontAwesomeIcon icon={faCapsules} className="fa-1x" />
+            Add Pharmacy Medicine
+          </h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -209,7 +214,8 @@ export default function AddPharmacyMedicinePage() {
                   onClick={() => setIsScannerOpen(true)}
                   className="px-4 py-2 bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue rounded-lg font-semibold transition-colors flex items-center gap-2"
                 >
-                  📷 Scan
+                  <FontAwesomeIcon icon={faCamera} className="fa-1x" />
+                  Scan
                 </button>
               </div>
             </div>

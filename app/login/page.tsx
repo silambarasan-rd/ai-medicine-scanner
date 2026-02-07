@@ -4,6 +4,8 @@ import { createClient } from '../utils/supabase/client';
 import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faShieldHalved, faMobileScreen, faStar } from '@fortawesome/free-solid-svg-icons';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -70,7 +72,13 @@ function LoginForm() {
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           {/* Logo and Title */}
           <div className="text-center mb-8">
-            <div className="text-6xl mb-4">💊</div>
+            <div className="mb-4 flex justify-center">
+              <img
+                src="/medicine-logo.svg"
+                alt="MathirAI"
+                className="h-[60px] w-auto"
+              />
+            </div>
             <h1 className="text-3xl font-bold text-deep-space-blue mb-2">MathirAI</h1>
             <p className="text-blue-slate">AI-Powered Medicine Scanner</p>
           </div>
@@ -186,9 +194,18 @@ function LoginForm() {
 
         {/* Additional Info */}
         <div className="mt-6 text-center text-white text-sm">
-          <p className="mb-2">✨ AI-powered medicine identification</p>
-          <p className="mb-2">🔒 Secure authentication with OAuth2</p>
-          <p>📱 Works on any device</p>
+          <p className="mb-2 flex items-center justify-center gap-2">
+            <FontAwesomeIcon icon={faStar} className="fa-1x" />
+            AI-powered medicine identification
+          </p>
+          <p className="mb-2 flex items-center justify-center gap-2">
+            <FontAwesomeIcon icon={faShieldHalved} className="fa-1x" />
+            Secure authentication with OAuth2
+          </p>
+          <p className="flex items-center justify-center gap-2">
+            <FontAwesomeIcon icon={faMobileScreen} className="fa-1x" />
+            Works on any device
+          </p>
         </div>
       </div>
     </main>

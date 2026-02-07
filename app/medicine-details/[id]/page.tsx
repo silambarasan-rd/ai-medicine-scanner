@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '../../utils/supabase/client';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUtensils, faCircle, faSlash, faArrowLeft, faClock, faCalendar, faPills, faNotesMedical } from '@fortawesome/free-solid-svg-icons';
+import { faUtensils, faCircle, faSlash, faArrowLeft, faClock, faCalendar, faPills, faNotesMedical, faCapsules } from '@fortawesome/free-solid-svg-icons';
 
 interface Medicine {
   id: string;
@@ -119,7 +119,7 @@ export default function MedicineDetailsPage({ params }: { params: Promise<{ id: 
             onClick={() => router.back()}
             className="flex items-center gap-2 text-charcoal-blue hover:text-deep-space-blue font-semibold mb-4 transition-colors"
           >
-            <FontAwesomeIcon icon={faArrowLeft} />
+            <FontAwesomeIcon icon={faArrowLeft} className="fa-1x" />
             Back
           </button>
           <h1 className="text-3xl font-bold text-deep-space-blue">Medicine Details</h1>
@@ -131,7 +131,9 @@ export default function MedicineDetailsPage({ params }: { params: Promise<{ id: 
           {/* Medicine Name Header */}
           <div className="bg-gradient-to-r from-charcoal-blue to-deep-space-blue text-white p-6">
             <div className="flex items-start gap-4">
-              <div className="text-5xl">💊</div>
+              <div className="text-5xl">
+                <FontAwesomeIcon icon={faCapsules} className="fa-1x" />
+              </div>
               <div className="flex-1">
                 <h2 className="text-2xl font-bold mb-2">{medicine.name}</h2>
                 {medicine.dosage && (
@@ -146,7 +148,7 @@ export default function MedicineDetailsPage({ params }: { params: Promise<{ id: 
             {/* Timing */}
             <div className="border-b border-gray-200 pb-4">
               <div className="flex items-center gap-2 text-gray-700 mb-2">
-                <FontAwesomeIcon icon={faClock} className="text-charcoal-blue" />
+                <FontAwesomeIcon icon={faClock} className="text-charcoal-blue fa-1x" />
                 <h3 className="font-semibold">Timing</h3>
               </div>
               <p className="text-2xl font-bold text-deep-space-blue ml-6">
@@ -158,13 +160,13 @@ export default function MedicineDetailsPage({ params }: { params: Promise<{ id: 
             {medicine.meal_timing && (
               <div className="border-b border-gray-200 pb-4">
                 <div className="flex items-center gap-2 text-gray-700 mb-2">
-                  <FontAwesomeIcon icon={faUtensils} className="text-charcoal-blue" />
+                  <FontAwesomeIcon icon={faUtensils} className="text-charcoal-blue fa-1x" />
                   <h3 className="font-semibold">Meal Timing</h3>
                 </div>
                 <div className="ml-6">
                   {medicine.meal_timing === 'after' ? (
                     <span className="inline-flex items-center rounded-md bg-green-50 px-4 py-2 text-base font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                      <FontAwesomeIcon icon={faUtensils} className="mr-2" />
+                      <FontAwesomeIcon icon={faUtensils} className="mr-2 fa-1x" />
                       After Meal
                     </span>
                   ) : (
@@ -185,7 +187,7 @@ export default function MedicineDetailsPage({ params }: { params: Promise<{ id: 
             {medicine.scheduled_date && (
               <div className="border-b border-gray-200 pb-4">
                 <div className="flex items-center gap-2 text-gray-700 mb-2">
-                  <FontAwesomeIcon icon={faCalendar} className="text-charcoal-blue" />
+                  <FontAwesomeIcon icon={faCalendar} className="text-charcoal-blue fa-1x" />
                   <h3 className="font-semibold">Start Date</h3>
                 </div>
                 <p className="text-lg text-gray-800 ml-6">
@@ -198,7 +200,7 @@ export default function MedicineDetailsPage({ params }: { params: Promise<{ id: 
             {medicine.occurrence && (
               <div className="border-b border-gray-200 pb-4">
                 <div className="flex items-center gap-2 text-gray-700 mb-2">
-                  <FontAwesomeIcon icon={faPills} className="text-charcoal-blue" />
+                  <FontAwesomeIcon icon={faPills} className="text-charcoal-blue fa-1x" />
                   <h3 className="font-semibold">Frequency</h3>
                 </div>
                 <p className="text-lg text-gray-800 ml-6">
@@ -211,7 +213,7 @@ export default function MedicineDetailsPage({ params }: { params: Promise<{ id: 
             {medicine.notes && (
               <div className="pb-4">
                 <div className="flex items-center gap-2 text-gray-700 mb-2">
-                  <FontAwesomeIcon icon={faNotesMedical} className="text-charcoal-blue" />
+                  <FontAwesomeIcon icon={faNotesMedical} className="text-charcoal-blue fa-1x" />
                   <h3 className="font-semibold">Notes</h3>
                 </div>
                 <p className="text-gray-700 ml-6 whitespace-pre-wrap">

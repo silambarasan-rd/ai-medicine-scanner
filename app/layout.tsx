@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
+import { config } from "@fortawesome/fontawesome-svg-core";
 import "./globals.css";
+import "@fortawesome/fontawesome-svg-core/styles.css";
 import ServiceWorkerRegistrar from "./components/ServiceWorkerRegistrar";
 import Navbar from "./components/Navbar";
 import ToastProvider from "./components/ToastProvider";
+
+config.autoAddCss = false;
 
 export const metadata: Metadata = {
   title: "MathirAI",
@@ -19,8 +23,8 @@ export default function RootLayout({
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#3e4c5e" />
-        <link rel="apple-touch-icon" href="/medicine-logo.png" />
-        <link rel="icon" type="image/png" href="/medicine-logo.png" />
+        <link rel="apple-touch-icon" href="/medicine-logo.svg" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
         <meta name="application-name" content="MathirAI" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

@@ -11,7 +11,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import styles from './Dashboard.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUtensils, faBell, faBellSlash, faCircle, faTimes, faSlash } from '@fortawesome/free-solid-svg-icons';
+import { faUtensils, faBell, faBellSlash, faCircle, faTimes, faSlash, faCalendarDays, faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import {
   subscribeToPushNotifications,
@@ -155,7 +155,7 @@ function DashboardContent() {
         console.log('Subscribed successfully');
       }
     } catch (error) {
-      console.error('❌ Error toggling notifications:', error);
+      console.error('Error toggling notifications:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       alert(`Failed to toggle notifications: ${errorMessage}\n\nCheck the browser console for details.`);
     } finally {
@@ -202,7 +202,7 @@ function DashboardContent() {
   };
 
   const generateEvents = (medicinesList: any[]) => {
-    console.log('📋 Generating events from medicines:', medicinesList);
+    console.log('Generating events from medicines:', medicinesList);
     const generatedEvents: CalendarEvent[] = [];
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Normalize to midnight for date comparison
@@ -259,7 +259,7 @@ function DashboardContent() {
             
             const event = {
               id: `${medicine.id}-${scheduleDate.getTime()}`,
-              title: `${confirmStatus.confirmed ? (confirmStatus.taken ? '✓' : '✗') : ''} ${medicine.name} - ${timeFormatted}`.trim(),
+              title: `${confirmStatus.confirmed ? (confirmStatus.taken ? 'Taken' : 'Skipped') : ''} ${medicine.name} - ${timeFormatted}`.trim(),
               start: eventStart.toISOString(),
               end: new Date(eventStart.getTime() + 3600000).toISOString(),
               backgroundColor: eventColor,
@@ -270,7 +270,7 @@ function DashboardContent() {
                 taken: confirmStatus.taken
               },
             };
-            console.log('  ✅ Added once event:', event);
+            console.log('  Added once event:', event);
             generatedEvents.push(event);
           }
         } else if (medicine.occurrence === 'daily') {
@@ -289,7 +289,7 @@ function DashboardContent() {
 
               generatedEvents.push({
                 id: `${medicine.id}-${currentDate.toDateString()}`,
-                title: `${confirmStatus.confirmed ? (confirmStatus.taken ? '✓' : '✗') : ''} ${medicine.name} - ${timeFormatted}`.trim(),
+                title: `${confirmStatus.confirmed ? (confirmStatus.taken ? 'Taken' : 'Skipped') : ''} ${medicine.name} - ${timeFormatted}`.trim(),
                 start: eventStart.toISOString(),
                 end: new Date(eventStart.getTime() + 3600000).toISOString(),
                 backgroundColor: eventColor,
@@ -304,7 +304,7 @@ function DashboardContent() {
             }
             currentDate.setDate(currentDate.getDate() + 1);
           }
-          console.log(`  ✅ Added ${count} daily events`);
+          console.log(`  Added ${count} daily events`);
         } else if (medicine.occurrence === 'weekly') {
           // Generate weekly events
           const currentDate = new Date(scheduleDate);
@@ -321,7 +321,7 @@ function DashboardContent() {
 
               generatedEvents.push({
                 id: `${medicine.id}-${currentDate.toDateString()}`,
-                title: `${confirmStatus.confirmed ? (confirmStatus.taken ? '✓' : '✗') : ''} ${medicine.name} - ${timeFormatted}`.trim(),
+                title: `${confirmStatus.confirmed ? (confirmStatus.taken ? 'Taken' : 'Skipped') : ''} ${medicine.name} - ${timeFormatted}`.trim(),
                 start: eventStart.toISOString(),
                 end: new Date(eventStart.getTime() + 3600000).toISOString(),
                 backgroundColor: eventColor,
@@ -336,7 +336,7 @@ function DashboardContent() {
             }
             currentDate.setDate(currentDate.getDate() + 7);
           }
-          console.log(`  ✅ Added ${count} weekly events`);
+          console.log(`  Added ${count} weekly events`);
         } else if (medicine.occurrence === 'monthly') {
           // Generate monthly events
           const currentDate = new Date(scheduleDate);
@@ -353,7 +353,7 @@ function DashboardContent() {
 
               generatedEvents.push({
                 id: `${medicine.id}-${currentDate.toDateString()}`,
-                title: `${confirmStatus.confirmed ? (confirmStatus.taken ? '✓' : '✗') : ''} ${medicine.name} - ${timeFormatted}`.trim(),
+                title: `${confirmStatus.confirmed ? (confirmStatus.taken ? 'Taken' : 'Skipped') : ''} ${medicine.name} - ${timeFormatted}`.trim(),
                 start: eventStart.toISOString(),
                 end: new Date(eventStart.getTime() + 3600000).toISOString(),
                 backgroundColor: eventColor,
@@ -368,14 +368,14 @@ function DashboardContent() {
             }
             currentDate.setMonth(currentDate.getMonth() + 1);
           }
-          console.log(`  ✅ Added ${count} monthly events`);
+          console.log(`  Added ${count} monthly events`);
         }
       } else {
-        console.log('  ❌ Missing scheduled_date or timing');
+        console.log('  Missing scheduled_date or timing');
       }
     });
 
-    console.log('📅 Total events generated:', generatedEvents.length, generatedEvents);
+    console.log('Total events generated:', generatedEvents.length, generatedEvents);
     setEvents(generatedEvents);
   };
 
@@ -388,7 +388,10 @@ function DashboardContent() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold text-deep-space-blue mb-2">📅 Medicine Schedule</h1>
+            <h1 className="text-3xl font-bold text-deep-space-blue mb-2 flex items-center gap-2">
+              <FontAwesomeIcon icon={faCalendarDays} className="fa-1x" />
+              Medicine Schedule
+            </h1>
             <p className="text-blue-slate">View your medicine schedule by month, week, or day</p>
           </div>
           
@@ -402,7 +405,7 @@ function DashboardContent() {
                 : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            <FontAwesomeIcon icon={notificationsEnabled ? faBell : faBellSlash} />
+            <FontAwesomeIcon icon={notificationsEnabled ? faBell : faBellSlash} className="fa-1x" />
             {notificationLoading ? 'Loading...' : notificationsEnabled ? 'Notifications On' : 'Enable Notifications'}
           </button>
         </div>
@@ -428,7 +431,7 @@ function DashboardContent() {
                   <div className="flex items-center gap-1 px-1">
                     <span className="truncate">{eventInfo.event.title}</span>
                     {showMealIcon && (
-                      <FontAwesomeIcon icon={faUtensils} className="text-xs" />
+                      <FontAwesomeIcon icon={faUtensils} className="text-xs fa-1x" />
                     )}
                   </div>
                 );
@@ -443,11 +446,17 @@ function DashboardContent() {
           <div className="flex flex-wrap gap-4 text-sm">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded bg-green-500"></div>
-              <span>✓ Taken</span>
+              <span className="inline-flex items-center gap-2">
+                <FontAwesomeIcon icon={faCheck} className="fa-1x" />
+                Taken
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded bg-gray-400"></div>
-              <span>✗ Skipped</span>
+              <span className="inline-flex items-center gap-2">
+                <FontAwesomeIcon icon={faXmark} className="fa-1x" />
+                Skipped
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded bg-blue-500"></div>
@@ -498,7 +507,10 @@ function DashboardContent() {
               {selectedEvent.extendedProps.confirmed && (
                 <p>
                   <span className="font-semibold">Status:</span>{' '}
-                  {selectedEvent.extendedProps.taken ? '✓ Taken' : '✗ Skipped'}
+                  <span className="inline-flex items-center gap-2">
+                    <FontAwesomeIcon icon={selectedEvent.extendedProps.taken ? faCheck : faXmark} className="fa-1x" />
+                    {selectedEvent.extendedProps.taken ? 'Taken' : 'Skipped'}
+                  </span>
                 </p>
               )}
             </div>

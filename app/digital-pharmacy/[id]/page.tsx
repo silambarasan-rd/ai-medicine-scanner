@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { createClient } from '../../utils/supabase/client';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { toast } from 'react-toastify';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCapsules } from '@fortawesome/free-solid-svg-icons';
 
 interface PharmacyTag {
   id: string;
@@ -106,7 +108,7 @@ export default function PharmacyMedicineDetailsPage() {
                     unoptimized
                   />
                 ) : (
-                  <span className="text-5xl">💊</span>
+                  <FontAwesomeIcon icon={faCapsules} className="text-5xl text-blue-slate fa-1x" />
                 )}
               </div>
             </div>

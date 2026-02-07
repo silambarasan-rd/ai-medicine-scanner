@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { createClient } from '../utils/supabase/client';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { toast } from 'react-toastify';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCapsules, faPenToSquare, faRotateRight, faTrash, faPlus, faClock } from '@fortawesome/free-solid-svg-icons';
 
 interface PharmacyTag {
   id: string;
@@ -165,14 +167,17 @@ export default function DigitalPharmacyPage() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-deep-space-blue mb-2">🧪 Digital Pharmacy</h1>
+            <h1 className="text-3xl font-bold text-deep-space-blue mb-2 flex items-center gap-2">
+              <FontAwesomeIcon icon={faCapsules} className="fa-1x" />
+              Digital Pharmacy
+            </h1>
             <p className="text-blue-slate">Track inventory, tags, and stock levels</p>
           </div>
           <button
             onClick={() => router.push('/digital-pharmacy/add')}
             className="bg-charcoal-blue hover:bg-deep-space-blue text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2"
           >
-            <span>+</span>
+            <FontAwesomeIcon icon={faPlus} className="fa-1x" />
             <span>Add Medicine</span>
           </button>
         </div>
@@ -216,18 +221,7 @@ export default function DigitalPharmacyPage() {
                 aria-label="View stock history"
                 className="bg-white border border-dim-grey/40 hover:border-charcoal-blue text-charcoal-blue px-3 py-2 rounded-lg transition-colors"
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="w-5 h-5"
-                >
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 7v5l3 2" />
-                </svg>
+                <FontAwesomeIcon icon={faClock} className="w-5 h-5 fa-1x" />
               </button>
             </div>
           </div>
@@ -262,7 +256,7 @@ export default function DigitalPharmacyPage() {
                         unoptimized
                       />
                     ) : (
-                      <span className="text-2xl">💊</span>
+                      <FontAwesomeIcon icon={faCapsules} className="text-2xl text-blue-slate fa-1x" />
                     )}
                   </div>
                   <div>
@@ -295,31 +289,42 @@ export default function DigitalPharmacyPage() {
                   <div className="flex gap-3">
                     <button
                       onClick={() => router.push(`/digital-pharmacy/edit/${medicine.id}`)}
-                      className="bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue font-semibold py-2 px-4 rounded-lg transition-colors"
+                      className="bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
                     >
-                      ✏️ Edit
+                      <FontAwesomeIcon icon={faPenToSquare} className="fa-1x" />
+                      Edit
                     </button>
                     <button
                       onClick={() => handleDelete(medicine.id)}
                       disabled={actionId === medicine.id}
-                      className={`font-semibold py-2 px-4 rounded-lg transition-colors ${
+                      className={`font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 ${
                         actionId === medicine.id
                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           : 'bg-red-100 hover:bg-red-200 text-red-700'
                       }`}
                     >
-                      {actionId === medicine.id ? '...' : '🗑️ Delete'}
+                      {actionId === medicine.id ? '...' : (
+                        <>
+                          <FontAwesomeIcon icon={faTrash} className="fa-1x" />
+                          Delete
+                        </>
+                      )}
                     </button>
                     <button
                       onClick={() => handleRefill(medicine)}
                       disabled={actionId === medicine.id}
-                      className={`font-semibold py-2 px-4 rounded-lg transition-colors ${
+                      className={`font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 ${
                         actionId === medicine.id
                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'
                       }`}
                     >
-                      {actionId === medicine.id ? '...' : '🔄 Refill'}
+                      {actionId === medicine.id ? '...' : (
+                        <>
+                          <FontAwesomeIcon icon={faRotateRight} className="fa-1x" />
+                          Refill
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
