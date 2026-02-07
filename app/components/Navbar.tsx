@@ -102,14 +102,24 @@ export default function Navbar() {
               Dashboard
             </Link>
             <Link
-              href="/digital-cabinet"
+              href="/digital-pharmacy"
               className={`transition-colors ${
-                isActive('/digital-cabinet')
+                isActive('/digital-pharmacy')
                   ? 'text-charcoal-blue border-b-2 border-charcoal-blue pb-1'
                   : 'text-charcoal-blue hover:text-charcoal-blue'
               }`}
             >
-              Digital Cabinet
+              Digital Pharmacy
+            </Link>
+            <Link
+              href="/medication"
+              className={`transition-colors ${
+                isActive('/medication')
+                  ? 'text-charcoal-blue border-b-2 border-charcoal-blue pb-1'
+                  : 'text-charcoal-blue hover:text-charcoal-blue'
+              }`}
+            >
+              Medication
             </Link>
           </div>
 
@@ -176,15 +186,26 @@ export default function Navbar() {
             Dashboard
           </Link>
           <Link
-            href="/digital-cabinet"
+            href="/digital-pharmacy"
             className={`transition-colors text-sm ${
-              isActive('/digital-cabinet')
+              isActive('/digital-pharmacy')
                 ? 'text-charcoal-blue font-semibold'
                 : 'text-charcoal-blue hover:text-charcoal-blue'
             }`}
             onClick={() => setIsDropdownOpen(false)}
           >
-            Digital Cabinet
+            Digital Pharmacy
+          </Link>
+          <Link
+            href="/medication"
+            className={`transition-colors text-sm ${
+              isActive('/medication')
+                ? 'text-charcoal-blue font-semibold'
+                : 'text-charcoal-blue hover:text-charcoal-blue'
+            }`}
+            onClick={() => setIsDropdownOpen(false)}
+          >
+            Medication
           </Link>
         </div>
       </div>

@@ -31,7 +31,7 @@ interface MedicineGroup {
   schedules: { timing?: string; meal_timing?: string }[];
 }
 
-export default function DigitalCabinetPage() {
+export default function MedicationPage() {
   const router = useRouter();
   const supabase = createClient();
   const [medicines, setMedicines] = useState<MedicineGroup[]>([]);
@@ -75,8 +75,7 @@ export default function DigitalCabinetPage() {
           return acc;
         }, {});
 
-        const groupedList = Object.values(grouped);
-        setMedicines(groupedList);
+        setMedicines(Object.values(grouped));
       } catch (error) {
         console.error('Error loading medicines:', error);
         toast.error('Failed to load medicines');
@@ -110,7 +109,7 @@ export default function DigitalCabinetPage() {
         }
       );
 
-      setMedicines(medicines.filter(m => m.id !== medicineId));
+      setMedicines((prev) => prev.filter((medicine) => medicine.id !== medicineId));
     } catch (err) {
       console.error('Error deleting medicine:', err);
       toast.error('Failed to delete medicine');
@@ -136,26 +135,26 @@ export default function DigitalCabinetPage() {
       <div className="max-w-5xl mx-auto">
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-deep-space-blue mb-2">💊 Digital Cabinet</h1>
-            <p className="text-blue-slate">Manage your medicine collection</p>
+            <h1 className="text-3xl font-bold text-deep-space-blue mb-2">💊 Medication</h1>
+            <p className="text-blue-slate">Manage your scheduled medications</p>
           </div>
           <button
             onClick={() => router.push('/add-medicine')}
             className="bg-charcoal-blue hover:bg-deep-space-blue text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2"
           >
             <span>+</span>
-            <span>Add Medicine</span>
+            <span>Add Medication</span>
           </button>
         </div>
 
         {medicines.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <p className="text-gray-500 text-lg mb-4">No medicines in your cabinet yet</p>
+            <p className="text-gray-500 text-lg mb-4">No medications scheduled yet</p>
             <button
               onClick={() => router.push('/add-medicine')}
               className="inline-block bg-charcoal-blue hover:bg-deep-space-blue text-white px-6 py-3 rounded-lg font-semibold transition-colors"
             >
-              + Add Your First Medicine
+              + Add Your First Medication
             </button>
           </div>
         ) : (

@@ -8,17 +8,27 @@ import { toast } from 'react-toastify';
 
 interface MedicineForm {
   id: string;
+  pharmacyMedicineId: string;
   name: string;
   dosage: string;
+  doseUnit: string;
   occurrence: 'once' | 'daily' | 'weekly' | 'monthly' | 'custom';
   customOccurrence?: string;
   scheduledDate: string;
   notes: string;
   schedules: {
-    morning: { enabled: boolean; time: string; mealTiming: 'before' | 'after' };
-    afternoon: { enabled: boolean; time: string; mealTiming: 'before' | 'after' };
-    night: { enabled: boolean; time: string; mealTiming: 'before' | 'after' };
+    morning: { enabled: boolean; time: string; mealTiming: 'before' | 'after'; doseAmount: string };
+    afternoon: { enabled: boolean; time: string; mealTiming: 'before' | 'after'; doseAmount: string };
+    night: { enabled: boolean; time: string; mealTiming: 'before' | 'after'; doseAmount: string };
   };
+}
+
+interface PharmacyMedicine {
+  id: string;
+  name: string;
+  category: string;
+  available_stock: number;
+  stock_unit: string;
 }
 
 export default function EditMedicinePage() {
@@ -27,20 +37,44 @@ export default function EditMedicinePage() {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [pharmacyMedicines, setPharmacyMedicines] = useState<PharmacyMedicine[]>([]);
+  const [loadingOptions, setLoadingOptions] = useState(true);
 
   const [form, setForm] = useState<MedicineForm>({
     id: '',
+    pharmacyMedicineId: '',
     name: '',
     dosage: '',
+    doseUnit: 'tablet',
     occurrence: 'daily',
     scheduledDate: new Date().toISOString().split('T')[0],
     notes: '',
     schedules: {
-      morning: { enabled: true, time: '09:00', mealTiming: 'after' },
-      afternoon: { enabled: false, time: '14:00', mealTiming: 'after' },
-      night: { enabled: false, time: '21:00', mealTiming: 'after' },
+      morning: { enabled: true, time: '09:00', mealTiming: 'after', doseAmount: '1' },
+      afternoon: { enabled: false, time: '14:00', mealTiming: 'after', doseAmount: '1' },
+      night: { enabled: false, time: '21:00', mealTiming: 'after', doseAmount: '1' },
     },
   });
+
+  useEffect(() => {
+    const loadPharmacyMedicines = async () => {
+      try {
+        const response = await fetch('/api/pharmacy-medicines');
+        if (!response.ok) {
+          throw new Error('Failed to fetch pharmacy medicines');
+        }
+        const data: PharmacyMedicine[] = await response.json();
+        setPharmacyMedicines(data || []);
+      } catch (error) {
+        console.error('Error loading pharmacy medicines:', error);
+        toast.error('Failed to load pharmacy medicines');
+      } finally {
+        setLoadingOptions(false);
+      }
+    };
+
+    loadPharmacyMedicines();
+  }, []);
 
   useEffect(() => {
     const loadMedicine = async () => {
@@ -60,36 +94,39 @@ export default function EditMedicinePage() {
         const medicine = await response.json();
 
         const loadedSchedules: {
-          morning: { enabled: boolean; time: string; mealTiming: 'before' | 'after' };
-          afternoon: { enabled: boolean; time: string; mealTiming: 'before' | 'after' };
-          night: { enabled: boolean; time: string; mealTiming: 'before' | 'after' };
+          morning: { enabled: boolean; time: string; mealTiming: 'before' | 'after'; doseAmount: string };
+          afternoon: { enabled: boolean; time: string; mealTiming: 'before' | 'after'; doseAmount: string };
+          night: { enabled: boolean; time: string; mealTiming: 'before' | 'after'; doseAmount: string };
         } = {
-          morning: { enabled: false, time: '09:00', mealTiming: 'after' },
-          afternoon: { enabled: false, time: '14:00', mealTiming: 'after' },
-          night: { enabled: false, time: '21:00', mealTiming: 'after' },
+          morning: { enabled: false, time: '09:00', mealTiming: 'after', doseAmount: '1' },
+          afternoon: { enabled: false, time: '14:00', mealTiming: 'after', doseAmount: '1' },
+          night: { enabled: false, time: '21:00', mealTiming: 'after', doseAmount: '1' },
         };
 
         const scheduleSource = medicine.group?.schedules ?? medicine.schedules ?? [];
 
-        scheduleSource.forEach((schedule: { timing: string; meal_timing: 'before' | 'after' }) => {
+        scheduleSource.forEach((schedule: { timing: string; meal_timing: 'before' | 'after'; dose_amount?: number }) => {
           const hour = parseInt(schedule.timing.split(':')[0] || '0', 10);
           if (hour < 12) {
             loadedSchedules.morning = {
               enabled: true,
               time: schedule.timing,
               mealTiming: schedule.meal_timing,
+              doseAmount: schedule.dose_amount ? String(schedule.dose_amount) : '1',
             };
           } else if (hour < 18) {
             loadedSchedules.afternoon = {
               enabled: true,
               time: schedule.timing,
               mealTiming: schedule.meal_timing,
+              doseAmount: schedule.dose_amount ? String(schedule.dose_amount) : '1',
             };
           } else {
             loadedSchedules.night = {
               enabled: true,
               time: schedule.timing,
               mealTiming: schedule.meal_timing,
+              doseAmount: schedule.dose_amount ? String(schedule.dose_amount) : '1',
             };
           }
         });
@@ -98,8 +135,10 @@ export default function EditMedicinePage() {
 
         setForm({
           id: baseMedicine.id ?? medicine.group_id ?? medicine.id,
+          pharmacyMedicineId: baseMedicine.pharmacy_medicine_id || '',
           name: baseMedicine.name,
           dosage: baseMedicine.dosage || '',
+          doseUnit: baseMedicine.dose_unit || 'tablet',
           occurrence: baseMedicine.occurrence || 'daily',
           customOccurrence: baseMedicine.custom_occurrence || '',
           scheduledDate: baseMedicine.scheduled_date,
@@ -109,7 +148,7 @@ export default function EditMedicinePage() {
       } catch (error) {
         console.error('Error loading medicine:', error);
         toast.error('Medicine not found');
-        setTimeout(() => router.push('/digital-cabinet'), 2000);
+        setTimeout(() => router.push('/medication'), 2000);
         return;
       }
 
@@ -126,9 +165,29 @@ export default function EditMedicinePage() {
     }));
   };
 
+  const handleMedicineSelect = (medicineId: string) => {
+    const selected = pharmacyMedicines.find((medicine) => medicine.id === medicineId);
+    if (!selected) {
+      setForm((prev) => ({
+        ...prev,
+        pharmacyMedicineId: '',
+        name: '',
+        doseUnit: 'tablet',
+      }));
+      return;
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      pharmacyMedicineId: medicineId,
+      name: selected.name,
+      doseUnit: selected.stock_unit || (selected.category === 'syrup' ? 'ml' : 'tablet'),
+    }));
+  };
+
   const handleScheduleChange = (
     period: 'morning' | 'afternoon' | 'night',
-    field: 'enabled' | 'time' | 'mealTiming',
+    field: 'enabled' | 'time' | 'mealTiming' | 'doseAmount',
     value: boolean | string
   ) => {
     setForm(prev => ({
@@ -146,8 +205,8 @@ export default function EditMedicinePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.name.trim()) {
-      toast.error('Medicine name is required');
+    if (!form.pharmacyMedicineId) {
+      toast.error('Select a medicine from Digital Pharmacy');
       return;
     }
 
@@ -157,10 +216,19 @@ export default function EditMedicinePage() {
         period,
         timing: form.schedules[period].time,
         meal_timing: form.schedules[period].mealTiming,
+        dose_amount: Number(form.schedules[period].doseAmount),
       }));
 
     if (selectedSchedules.length === 0) {
       toast.error('Select at least one time of day');
+      return;
+    }
+
+    const invalidDose = selectedSchedules.find((schedule) =>
+      Number.isNaN(schedule.dose_amount) || schedule.dose_amount <= 0
+    );
+    if (invalidDose) {
+      toast.error('Enter a valid dose amount for each selected time');
       return;
     }
 
@@ -183,11 +251,13 @@ export default function EditMedicinePage() {
           },
           body: JSON.stringify({
             name: form.name,
+            pharmacy_medicine_id: form.pharmacyMedicineId,
             dosage: form.dosage || null,
             occurrence: form.occurrence,
             custom_occurrence: form.customOccurrence || null,
             scheduled_date: form.scheduledDate,
             schedules: selectedSchedules,
+            dose_unit: form.doseUnit,
             notes: form.notes || null,
             timezone: userTimezone, // Send timezone to backend
           }),
@@ -203,7 +273,7 @@ export default function EditMedicinePage() {
         }
       );
       setTimeout(() => {
-        router.push('/digital-cabinet');
+        router.push('/medication');
       }, 1500);
     } catch (err) {
       console.error('Error updating medicine:', err);
@@ -221,21 +291,31 @@ export default function EditMedicinePage() {
     <div className="min-h-screen bg-rosy-granite/5 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6 sm:p-8">
-          <h1 className="text-3xl font-bold text-deep-space-blue mb-8">✏️ Edit Medicine</h1>
+          <h1 className="text-3xl font-bold text-deep-space-blue mb-8">✏️ Edit Medication</h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Medicine Name */}
+            {/* Pharmacy Medicine Selection */}
             <div>
               <label className="block text-sm font-medium text-charcoal-blue mb-2">
-                Medicine Name *
+                Pharmacy Medicine *
               </label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                placeholder="e.g., Dolo 650, Aspirin"
+              <select
+                value={form.pharmacyMedicineId}
+                onChange={(e) => handleMedicineSelect(e.target.value)}
                 className="w-full px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
-              />
+              >
+                <option value="">{loadingOptions ? 'Loading medicines...' : 'Select medicine'}</option>
+                {pharmacyMedicines.map((medicine) => (
+                  <option key={medicine.id} value={medicine.id}>
+                    {medicine.name} ({medicine.available_stock} {medicine.stock_unit})
+                  </option>
+                ))}
+              </select>
+              {pharmacyMedicines.length === 0 && !loadingOptions && (
+                <p className="text-xs text-blue-slate mt-2">
+                  No medicines available. Add one in Digital Pharmacy first.
+                </p>
+              )}
             </div>
 
             {/* Dosage */}
@@ -289,7 +369,7 @@ export default function EditMedicinePage() {
                       </label>
                     </div>
                     {form.schedules[key].enabled && (
-                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                           <label className="block text-xs font-medium text-charcoal-blue mb-2">
                             Time
@@ -322,6 +402,19 @@ export default function EditMedicinePage() {
                               </label>
                             ))}
                           </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-charcoal-blue mb-2">
+                            Dose ({form.doseUnit})
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            value={form.schedules[key].doseAmount}
+                            onChange={(e) => handleScheduleChange(key, 'doseAmount', e.target.value)}
+                            className="w-full px-3 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
+                          />
                         </div>
                       </div>
                     )}
@@ -394,11 +487,11 @@ export default function EditMedicinePage() {
                     : 'bg-charcoal-blue hover:bg-deep-space-blue'
                 }`}
               >
-                {saving ? 'Updating...' : '✅ Update Medicine'}
+                {saving ? 'Updating...' : '✅ Update Medication'}
               </button>
               <button
                 type="button"
-                onClick={() => router.push('/digital-cabinet')}
+                onClick={() => router.push('/medication')}
                 className="flex-1 py-3 px-6 rounded-lg font-semibold text-charcoal-blue bg-gray-200 hover:bg-gray-300 transition-colors"
               >
                 Cancel

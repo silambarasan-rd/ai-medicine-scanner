@@ -19,6 +19,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Medicine ID and scheduled datetime required' }, { status: 400 });
     }
 
+    const { data: existingConfirmation } = await supabase
+      .from('medicine_confirmations')
+      .select('taken')
+      .eq('user_id', user.id)
+      .eq('medicine_id', medicineId)
+      .eq('scheduled_datetime', scheduledDatetime)
+      .maybeSingle();
+
+    const shouldDecrement = Boolean(taken) && !existingConfirmation?.taken;
+
     // Upsert confirmation record
     const { data, error } = await supabase
       .from('medicine_confirmations')
@@ -39,6 +49,59 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error saving confirmation:', error);
       return NextResponse.json({ error: 'Failed to save confirmation' }, { status: 500 });
+    }
+
+    if (shouldDecrement) {
+      const { data: medicine, error: medicineError } = await supabase
+        .from('user_medicines')
+        .select('pharmacy_medicine_id, dose_amount')
+        .eq('id', medicineId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (medicineError) {
+        console.error('Error loading medicine for stock update:', medicineError);
+      } else if (medicine?.pharmacy_medicine_id && medicine?.dose_amount) {
+        const { data: pharmacy, error: pharmacyError } = await supabase
+          .from('pharmacy_medicines')
+          .select('available_stock, stock_unit')
+          .eq('id', medicine.pharmacy_medicine_id)
+          .eq('user_id', user.id)
+          .single();
+
+        if (pharmacyError) {
+          console.error('Error loading pharmacy stock:', pharmacyError);
+        } else {
+          const currentStock = Number(pharmacy?.available_stock || 0);
+          const nextStock = Math.max(0, currentStock - Number(medicine.dose_amount));
+          const { error: stockError } = await supabase
+            .from('pharmacy_medicines')
+            .update({ available_stock: nextStock })
+            .eq('id', medicine.pharmacy_medicine_id)
+            .eq('user_id', user.id);
+
+          if (stockError) {
+            console.error('Error updating pharmacy stock:', stockError);
+          } else {
+            const { error: historyError } = await supabase
+              .from('pharmacy_stock_history')
+              .insert({
+                user_id: user.id,
+                medicine_id: medicine.pharmacy_medicine_id,
+                delta: -Number(medicine.dose_amount),
+                before_stock: currentStock,
+                after_stock: nextStock,
+                stock_unit: pharmacy.stock_unit || 'tablet',
+                source: 'taken',
+                note: null,
+              });
+
+            if (historyError) {
+              console.error('Error creating pharmacy stock history:', historyError);
+            }
+          }
+        }
+      }
     }
 
     return NextResponse.json({ success: true, confirmation: data });
