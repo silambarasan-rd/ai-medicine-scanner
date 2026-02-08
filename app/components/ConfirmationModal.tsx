@@ -54,9 +54,8 @@ export default function ConfirmationModal({
 
   const formatDateTime = (datetime: string) => {
     const date = new Date(datetime);
-    // Convert UTC to IST
-    const istDate = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
-    return istDate.toLocaleString('en-IN', {
+
+    return date.toLocaleString('en-IN', {
       weekday: 'short',
       year: 'numeric',
       month: 'short',
