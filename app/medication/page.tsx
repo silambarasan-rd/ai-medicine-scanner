@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '../utils/supabase/client';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { toast } from 'react-toastify';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faSyringe, faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 interface Medicine {
   id: string;
@@ -31,7 +33,7 @@ interface MedicineGroup {
   schedules: { timing?: string; meal_timing?: string }[];
 }
 
-export default function DigitalCabinetPage() {
+export default function MedicationPage() {
   const router = useRouter();
   const supabase = createClient();
   const [medicines, setMedicines] = useState<MedicineGroup[]>([]);
@@ -75,8 +77,7 @@ export default function DigitalCabinetPage() {
           return acc;
         }, {});
 
-        const groupedList = Object.values(grouped);
-        setMedicines(groupedList);
+        setMedicines(Object.values(grouped));
       } catch (error) {
         console.error('Error loading medicines:', error);
         toast.error('Failed to load medicines');
@@ -110,7 +111,7 @@ export default function DigitalCabinetPage() {
         }
       );
 
-      setMedicines(medicines.filter(m => m.id !== medicineId));
+      setMedicines((prev) => prev.filter((medicine) => medicine.id !== medicineId));
     } catch (err) {
       console.error('Error deleting medicine:', err);
       toast.error('Failed to delete medicine');
@@ -136,26 +137,29 @@ export default function DigitalCabinetPage() {
       <div className="max-w-5xl mx-auto">
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-deep-space-blue mb-2">💊 Digital Cabinet</h1>
-            <p className="text-blue-slate">Manage your medicine collection</p>
+            <h1 className="text-3xl font-bold text-deep-space-blue mb-2 flex items-center gap-2">
+              <FontAwesomeIcon icon={faSyringe} className="fa-1x" />
+              Medication
+            </h1>
+            <p className="text-blue-slate">Manage your scheduled medications</p>
           </div>
           <button
             onClick={() => router.push('/add-medicine')}
             className="bg-charcoal-blue hover:bg-deep-space-blue text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2"
           >
-            <span>+</span>
-            <span>Add Medicine</span>
+            <FontAwesomeIcon icon={faPlus} className="fa-1x" />
+            <span>Add Medication</span>
           </button>
         </div>
 
         {medicines.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <p className="text-gray-500 text-lg mb-4">No medicines in your cabinet yet</p>
+            <p className="text-gray-500 text-lg mb-4">No medications scheduled yet</p>
             <button
               onClick={() => router.push('/add-medicine')}
               className="inline-block bg-charcoal-blue hover:bg-deep-space-blue text-white px-6 py-3 rounded-lg font-semibold transition-colors"
             >
-              + Add Your First Medicine
+              + Add Your First Medication
             </button>
           </div>
         ) : (
@@ -211,20 +215,26 @@ export default function DigitalCabinetPage() {
                 <div className="flex gap-3 pt-4 border-t border-rosy-granite/30">
                   <button
                     onClick={() => handleEdit(medicine.id)}
-                    className="flex-1 bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue font-semibold py-2 px-4 rounded-lg transition-colors"
+                    className="flex-1 bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                   >
-                    ✏️ Edit
+                    <FontAwesomeIcon icon={faPenToSquare} className="fa-1x" />
+                    Edit
                   </button>
                   <button
                     onClick={() => handleDelete(medicine.id)}
                     disabled={deletingId === medicine.id}
-                    className={`flex-1 font-semibold py-2 px-4 rounded-lg transition-colors ${
+                    className={`flex-1 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 ${
                       deletingId === medicine.id
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         : 'bg-red-100 hover:bg-red-200 text-red-700'
                     }`}
                   >
-                    {deletingId === medicine.id ? '...' : '🗑️ Delete'}
+                    {deletingId === medicine.id ? '...' : (
+                      <>
+                        <FontAwesomeIcon icon={faTrash} className="fa-1x" />
+                        Delete
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

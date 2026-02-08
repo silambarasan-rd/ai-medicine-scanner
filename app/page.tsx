@@ -28,7 +28,13 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-rosy-granite via-blue-slate to-deep-space-blue flex items-center justify-center">
       <div className="text-center">
-        <div className="text-6xl mb-4">💊</div>
+        <div className="mb-4 flex justify-center">
+          <img
+            src="/medicine-logo.svg"
+            alt="MathirAI"
+            className="h-[72px] w-auto"
+          />
+        </div>
         <h1 className="text-4xl font-bold text-white mb-4">MathirAI</h1>
         <div className="inline-block">
           <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { createClient } from '../utils/supabase/client';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faUser, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCapsules, faChevronDown, faHouse, faSyringe, faUser, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 
 interface UserProfile {
   id: string;
@@ -85,7 +85,10 @@ export default function Navbar() {
           <div className="flex-shrink-0">
             <Link
               href="/dashboard">
-              <h1 className="text-2xl font-bold text-charcoal-blue">💊 MathirAI</h1>
+              <h1 className="text-2xl font-bold text-[#1794f1] flex items-center gap-2">
+                <img src="/medicine-logo.svg" alt="MathirAI" className="w-6 h-6" />
+                MathirAI
+              </h1>
             </Link>
           </div>
 
@@ -93,23 +96,36 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-8">
             <Link
               href="/dashboard"
-              className={`transition-colors ${
+              className={`transition-colors flex items-center gap-2 ${
                 isActive('/dashboard')
                   ? 'text-charcoal-blue border-b-2 border-charcoal-blue pb-1'
                   : 'text-charcoal-blue hover:text-charcoal-blue'
               }`}
             >
+              <FontAwesomeIcon icon={faHouse} className="fa-1x" />
               Dashboard
             </Link>
             <Link
-              href="/digital-cabinet"
-              className={`transition-colors ${
-                isActive('/digital-cabinet')
+              href="/digital-pharmacy"
+              className={`transition-colors flex items-center gap-2 ${
+                isActive('/digital-pharmacy')
                   ? 'text-charcoal-blue border-b-2 border-charcoal-blue pb-1'
                   : 'text-charcoal-blue hover:text-charcoal-blue'
               }`}
             >
-              Digital Cabinet
+              <FontAwesomeIcon icon={faCapsules} className="fa-1x" />
+              Digital Pharmacy
+            </Link>
+            <Link
+              href="/medication"
+              className={`transition-colors flex items-center gap-2 ${
+                isActive('/medication')
+                  ? 'text-charcoal-blue border-b-2 border-charcoal-blue pb-1'
+                  : 'text-charcoal-blue hover:text-charcoal-blue'
+              }`}
+            >
+              <FontAwesomeIcon icon={faSyringe} className="fa-1x" />
+              Medication
             </Link>
           </div>
 
@@ -135,7 +151,7 @@ export default function Navbar() {
               </span>
               <FontAwesomeIcon
                 icon={faChevronDown}
-                className={`w-4 h-4 text-blue-slate transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 text-blue-slate transition-transform fa-1x ${isDropdownOpen ? 'rotate-180' : ''}`}
               />
             </button>
 
@@ -147,14 +163,14 @@ export default function Navbar() {
                   className="flex items-center gap-2 px-4 py-2 text-charcoal-blue hover:bg-blue-slate/10 hover:text-charcoal-blue rounded-t-lg transition-colors text-sm font-medium"
                   onClick={() => setIsDropdownOpen(false)}
                 >
-                  <FontAwesomeIcon icon={faUser} className="w-4 h-4" />
+                  <FontAwesomeIcon icon={faUser} className="w-4 h-4 fa-1x" />
                   Profile
                 </Link>
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-2 px-4 py-2 text-charcoal-blue hover:bg-red-50 hover:text-red-600 rounded-b-lg transition-colors text-sm font-medium border-t border-rosy-granite/20"
                 >
-                  <FontAwesomeIcon icon={faSignOutAlt} className="w-4 h-4" />
+                  <FontAwesomeIcon icon={faSignOutAlt} className="w-4 h-4 fa-1x" />
                   Logout
                 </button>
               </div>
@@ -166,25 +182,39 @@ export default function Navbar() {
         <div className="md:hidden flex gap-4 pb-4 border-t border-rosy-granite/30 mt-4 pt-4">
           <Link
             href="/dashboard"
-            className={`transition-colors text-sm ${
+            className={`transition-colors text-sm flex items-center gap-2 ${
               isActive('/dashboard')
                 ? 'text-charcoal-blue font-semibold'
                 : 'text-charcoal-blue hover:text-charcoal-blue'
             }`}
             onClick={() => setIsDropdownOpen(false)}
           >
+            <FontAwesomeIcon icon={faHouse} className="fa-1x" />
             Dashboard
           </Link>
           <Link
-            href="/digital-cabinet"
-            className={`transition-colors text-sm ${
-              isActive('/digital-cabinet')
+            href="/digital-pharmacy"
+            className={`transition-colors text-sm flex items-center gap-2 ${
+              isActive('/digital-pharmacy')
                 ? 'text-charcoal-blue font-semibold'
                 : 'text-charcoal-blue hover:text-charcoal-blue'
             }`}
             onClick={() => setIsDropdownOpen(false)}
           >
-            Digital Cabinet
+            <FontAwesomeIcon icon={faCapsules} className="fa-1x" />
+            Digital Pharmacy
+          </Link>
+          <Link
+            href="/medication"
+            className={`transition-colors text-sm flex items-center gap-2 ${
+              isActive('/medication')
+                ? 'text-charcoal-blue font-semibold'
+                : 'text-charcoal-blue hover:text-charcoal-blue'
+            }`}
+            onClick={() => setIsDropdownOpen(false)}
+          >
+            <FontAwesomeIcon icon={faSyringe} className="fa-1x" />
+            Medication
           </Link>
         </div>
       </div>

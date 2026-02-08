@@ -85,9 +85,12 @@ export async function GET(
     return NextResponse.json({
       id: base.id,
       name: base.name,
+      pharmacy_medicine_id: base.pharmacy_medicine_id,
       dosage: base.dosage,
       timing: base.timing,
       meal_timing: base.meal_timing,
+      dose_amount: base.dose_amount,
+      dose_unit: base.dose_unit,
       occurrence: base.occurrence,
       custom_occurrence: base.custom_occurrence,
       scheduled_date: base.scheduled_date,
@@ -97,6 +100,7 @@ export async function GET(
       group: {
         id: base.group_id,
         name: base.name,
+        pharmacy_medicine_id: base.pharmacy_medicine_id,
         dosage: base.dosage,
         occurrence: base.occurrence,
         custom_occurrence: base.custom_occurrence,
@@ -105,6 +109,7 @@ export async function GET(
         schedules: medicines.map((medicine) => ({
           timing: medicine.timing,
           meal_timing: medicine.meal_timing,
+          dose_amount: medicine.dose_amount,
         })),
       }
     });
@@ -138,7 +143,20 @@ export async function PUT(
 
     // Parse request body
     const body = await request.json();
-    const { name, dosage, occurrence, custom_occurrence, scheduled_date, timing, meal_timing, notes, schedules, timezone } = body;
+    const {
+      name,
+      pharmacy_medicine_id,
+      dosage,
+      occurrence,
+      custom_occurrence,
+      scheduled_date,
+      timing,
+      meal_timing,
+      notes,
+      schedules,
+      timezone,
+      dose_unit,
+    } = body;
 
     // Get user timezone (default to UTC if not provided)
     const userTimezone = timezone || 'UTC';
@@ -147,6 +165,13 @@ export async function PUT(
     if (!name || !occurrence || !scheduled_date) {
       return NextResponse.json(
         { error: 'Missing required fields: name, occurrence, scheduled_date' },
+        { status: 400 }
+      );
+    }
+
+    if (!pharmacy_medicine_id || !dose_unit) {
+      return NextResponse.json(
+        { error: 'Missing required fields: pharmacy_medicine_id, dose_unit' },
         { status: 400 }
       );
     }
@@ -160,12 +185,12 @@ export async function PUT(
     }
 
     if (hasSchedules) {
-      const invalidSchedule = schedules.find((schedule: { timing?: string; meal_timing?: string }) =>
-        !schedule?.timing || !schedule?.meal_timing
+      const invalidSchedule = schedules.find((schedule: { timing?: string; meal_timing?: string; dose_amount?: number }) =>
+        !schedule?.timing || !schedule?.meal_timing || !schedule?.dose_amount
       );
       if (invalidSchedule) {
         return NextResponse.json(
-          { error: 'Each schedule requires timing and meal_timing' },
+          { error: 'Each schedule requires timing, meal_timing, and dose_amount' },
           { status: 400 }
         );
       }
@@ -186,16 +211,19 @@ export async function PUT(
     }
 
     const insertPayload = hasSchedules
-      ? schedules.map((schedule: { timing: string; meal_timing: string }) => ({
+      ? schedules.map((schedule: { timing: string; meal_timing: string; dose_amount: number }) => ({
           user_id: user.id,
           group_id: id,
           name,
+          pharmacy_medicine_id,
           dosage,
           occurrence,
           custom_occurrence,
           scheduled_date,
           timing: schedule.timing,
           meal_timing: schedule.meal_timing,
+          dose_amount: schedule.dose_amount,
+          dose_unit,
           notes,
           timezone: userTimezone, // Store timezone
         }))
@@ -204,12 +232,15 @@ export async function PUT(
             user_id: user.id,
             group_id: id,
             name,
+            pharmacy_medicine_id,
             dosage,
             occurrence,
             custom_occurrence,
             scheduled_date,
             timing,
             meal_timing,
+            dose_amount: body.dose_amount,
+            dose_unit,
             notes,
             timezone: userTimezone, // Store timezone
           },
