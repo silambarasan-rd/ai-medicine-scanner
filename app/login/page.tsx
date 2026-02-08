@@ -4,6 +4,7 @@ import { createClient } from '../utils/supabase/client';
 import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import LoadingSpinner from '../components/LoadingSpinner';
+import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShieldHalved, faMobileScreen, faStar } from '@fortawesome/free-solid-svg-icons';
 
@@ -73,10 +74,13 @@ function LoginForm() {
           {/* Logo and Title */}
           <div className="text-center mb-8">
             <div className="mb-4 flex justify-center">
-              <img
+              <Image
                 src="/medicine-logo.svg"
                 alt="MathirAI"
+                width={120}
+                height={60}
                 className="h-[60px] w-auto"
+                priority
               />
             </div>
             <h1 className="text-3xl font-bold text-deep-space-blue mb-2">MathirAI</h1>

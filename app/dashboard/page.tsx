@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '../utils/supabase/client';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -11,7 +11,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import styles from './Dashboard.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUtensils, faBell, faBellSlash, faCircle, faCircleCheck, faTimes, faSlash, faCalendarDays, faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faUtensils, faBell, faBellSlash, faCircle, faCircleCheck, faSlash, faCalendarDays, faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import {
   subscribeToPushNotifications,
@@ -28,6 +28,7 @@ interface Medicine {
   occurrence?: string;
   nextDueDate?: string;
   meal_timing?: string;
+  scheduled_date?: string;
 }
 
 interface CalendarEvent {
@@ -53,13 +54,22 @@ interface ConfirmationData {
   mealTiming?: string;
 }
 
+interface ConfirmationRecord {
+  medicine_id: string;
+  scheduled_datetime: string;
+  taken: boolean;
+  skipped?: boolean;
+}
+
 function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
+  const confirmId = searchParams.get('confirm');
+  const confirmTime = searchParams.get('time');
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [confirmations, setConfirmations] = useState<any[]>([]);
+  const [confirmations, setConfirmations] = useState<ConfirmationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -70,91 +80,11 @@ function DashboardContent() {
   const [eventActionLoading, setEventActionLoading] = useState(false);
   const [eventActionError, setEventActionError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadMedicines = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/login');
-        return;
-      }
-
-      try {
-        // Load medicines
-        const response = await fetch('/api/medicines');
-        if (!response.ok) {
-          throw new Error('Failed to fetch medicines');
-        }
-
-        const medicinesData = await response.json();
-
-        if (medicinesData) {
-          setMedicines(medicinesData);
-          const confirmationsData = await loadConfirmations();
-          generateEvents(medicinesData, confirmationsData);
-        }
-
-        // Check notification status
-        const status = await checkNotificationStatus();
-        setNotificationsEnabled(status.subscribed);
-
-        // Setup service worker listener for confirmation modal
-        setupServiceWorkerListener((medicineId, scheduledDatetime, medicineName, dosage, mealTiming) => {
-          setConfirmationModal({
-            medicineId,
-            scheduledDatetime,
-            medicineName: medicineName || medicines.find((m: any) => m.id === medicineId)?.name || '',
-            dosage: dosage || medicines.find((m: any) => m.id === medicineId)?.dosage,
-            mealTiming: mealTiming || medicines.find((m: any) => m.id === medicineId)?.meal_timing
-          });
-        });
-
-        // Check if opened from notification with query params
-        const confirmId = searchParams.get('confirm');
-        const confirmTime = searchParams.get('time');
-        if (confirmId && confirmTime) {
-          const medicine = medicinesData.find((m: any) => m.id === confirmId);
-          if (medicine) {
-            setConfirmationModal({
-              medicineId: confirmId,
-              scheduledDatetime: confirmTime,
-              medicineName: medicine.name,
-              dosage: medicine.dosage,
-              mealTiming: medicine.meal_timing
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Error loading medicines:', error);
-      }
-
-      setLoading(false);
-    };
-
-    loadMedicines();
-  }, [supabase, router, searchParams]);
-
-  useEffect(() => {
-    if (!selectedEvent) {
-      setEventActionStatus('');
-      setEventActionNotes('');
-      setEventActionError(null);
-      return;
-    }
-
-    if (selectedEvent.extendedProps.confirmed) {
-      setEventActionStatus(selectedEvent.extendedProps.taken ? 'taken' : 'skipped');
-    } else {
-      setEventActionStatus('');
-    }
-    setEventActionNotes('');
-    setEventActionError(null);
-  }, [selectedEvent]);
-
-  const loadConfirmations = async () => {
+  const loadConfirmations = useCallback(async () => {
     try {
       const response = await fetch('/api/confirmations');
       if (response.ok) {
-        const data = await response.json();
+        const data: { confirmations?: ConfirmationRecord[] } = await response.json();
         const nextConfirmations = data.confirmations || [];
         setConfirmations(nextConfirmations);
         return nextConfirmations;
@@ -162,130 +92,10 @@ function DashboardContent() {
     } catch (error) {
       console.error('Error loading confirmations:', error);
     }
-    return [];
-  };
+    return [] as ConfirmationRecord[];
+  }, []);
 
-  const handleToggleNotifications = async () => {
-    setNotificationLoading(true);
-    try {
-      if (notificationsEnabled) {
-        console.log('Unsubscribing from notifications...');
-        await unsubscribeFromPushNotifications();
-        setNotificationsEnabled(false);
-        console.log('Unsubscribed successfully');
-      } else {
-        console.log('Subscribing to notifications...');
-        await subscribeToPushNotifications();
-        setNotificationsEnabled(true);
-        console.log('Subscribed successfully');
-      }
-    } catch (error) {
-      console.error('Error toggling notifications:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(`Failed to toggle notifications: ${errorMessage}\n\nCheck the browser console for details.`);
-    } finally {
-      setNotificationLoading(false);
-    }
-  };
-
-  const handleConfirmMedicine = async (taken: boolean, notes?: string) => {
-    if (!confirmationModal) return;
-
-    try {
-      await toast.promise(
-        fetch('/api/confirmations', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            medicineId: confirmationModal.medicineId,
-            scheduledDatetime: confirmationModal.scheduledDatetime,
-            taken,
-            skipped: !taken,
-            notes
-          })
-        }).then((response) => {
-          if (!response.ok) {
-            throw new Error('Failed to save confirmation');
-          }
-          return response;
-        }),
-        {
-          pending: 'Saving confirmation...',
-          success: taken ? 'Marked as taken' : 'Marked as skipped'
-        }
-      );
-
-      // Reload confirmations and regenerate events
-      const confirmationsData = await loadConfirmations();
-      generateEvents(medicines, confirmationsData);
-      setConfirmationModal(null);
-    } catch (error) {
-      console.error('Error confirming medicine:', error);
-      toast.error('Failed to save confirmation');
-      throw error;
-    }
-  };
-
-  const handleEventConfirmation = async (taken: boolean, notes?: string) => {
-    if (!selectedEvent) return;
-
-    const scheduledDatetime = selectedEvent.start instanceof Date
-      ? selectedEvent.start.toISOString()
-      : new Date(selectedEvent.start).toISOString();
-
-    setEventActionLoading(true);
-    setEventActionError(null);
-
-    try {
-      await toast.promise(
-        fetch('/api/confirmations', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            medicineId: selectedEvent.extendedProps.medicine.id,
-            scheduledDatetime,
-            taken,
-            skipped: !taken,
-            notes
-          })
-        }).then((response) => {
-          if (!response.ok) {
-            throw new Error('Failed to save confirmation');
-          }
-          return response;
-        }),
-        {
-          pending: 'Saving confirmation...',
-          success: taken ? 'Marked as taken' : 'Marked as skipped'
-        }
-      );
-
-      const confirmationsData = await loadConfirmations();
-      generateEvents(medicines, confirmationsData);
-      setSelectedEvent((prev) =>
-        prev
-          ? {
-              ...prev,
-              extendedProps: {
-                ...prev.extendedProps,
-                confirmed: true,
-                taken
-              }
-            }
-          : prev
-      );
-      setEventActionStatus(taken ? 'taken' : 'skipped');
-      setEventActionNotes('');
-    } catch (error) {
-      console.error('Error confirming medicine:', error);
-      setEventActionError('Failed to save confirmation. Please try again.');
-      toast.error('Failed to save confirmation');
-    } finally {
-      setEventActionLoading(false);
-    }
-  };
-
-  const generateEvents = (medicinesList: any[], confirmationsList = confirmations) => {
+  const generateEvents = useCallback((medicinesList: Medicine[], confirmationsList: ConfirmationRecord[]) => {
     console.log('📋 Generating events from medicines:', medicinesList);
     const generatedEvents: CalendarEvent[] = [];
     const today = new Date();
@@ -318,7 +128,7 @@ function DashboardContent() {
 
     // Helper to check if event is confirmed
     const getConfirmationStatus = (medicineId: string, eventStart: Date) => {
-      const confirmation = confirmationsList.find(c => 
+      const confirmation = confirmationsList.find(c =>
         c.medicine_id === medicineId &&
         new Date(c.scheduled_datetime).getTime() === eventStart.getTime()
       );
@@ -474,7 +284,223 @@ function DashboardContent() {
 
     console.log('Total events generated:', generatedEvents.length, generatedEvents);
     setEvents(generatedEvents);
+  }, []);
+
+  useEffect(() => {
+    const loadMedicines = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+        return;
+      }
+
+      try {
+        // Load medicines
+        const response = await fetch('/api/medicines');
+        if (!response.ok) {
+          throw new Error('Failed to fetch medicines');
+        }
+
+        const medicinesData: Medicine[] = await response.json();
+
+        if (medicinesData) {
+          setMedicines(medicinesData);
+          await loadConfirmations();
+        }
+
+        const medicineLookup = new Map(medicinesData.map((medicine) => [medicine.id, medicine]));
+
+        // Check notification status
+        const status = await checkNotificationStatus();
+        setNotificationsEnabled(status.subscribed);
+
+        // Setup service worker listener for confirmation modal
+        setupServiceWorkerListener((medicineId, scheduledDatetime, medicineName, dosage, mealTiming) => {
+          const matchedMedicine = medicineLookup.get(medicineId);
+          setConfirmationModal({
+            medicineId,
+            scheduledDatetime,
+            medicineName: medicineName || matchedMedicine?.name || '',
+            dosage: dosage || matchedMedicine?.dosage,
+            mealTiming: mealTiming || matchedMedicine?.meal_timing
+          });
+        });
+
+        // Check if opened from notification with query params
+        if (confirmId && confirmTime) {
+          const medicine = medicinesData.find((m) => m.id === confirmId);
+          if (medicine) {
+            setConfirmationModal({
+              medicineId: confirmId,
+              scheduledDatetime: confirmTime,
+              medicineName: medicine.name,
+              dosage: medicine.dosage,
+              mealTiming: medicine.meal_timing
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading medicines:', error);
+      }
+
+      setLoading(false);
+    };
+
+    loadMedicines();
+  }, [supabase, router, confirmId, confirmTime, loadConfirmations]);
+
+  useEffect(() => {
+    if (medicines.length === 0) {
+      setEvents([]);
+      return;
+    }
+
+    generateEvents(medicines, confirmations);
+  }, [medicines, confirmations, generateEvents]);
+
+  useEffect(() => {
+    if (!selectedEvent) {
+      setEventActionStatus('');
+      setEventActionNotes('');
+      setEventActionError(null);
+      return;
+    }
+
+    if (selectedEvent.extendedProps.confirmed) {
+      setEventActionStatus(selectedEvent.extendedProps.taken ? 'taken' : 'skipped');
+    } else {
+      setEventActionStatus('');
+    }
+    setEventActionNotes('');
+    setEventActionError(null);
+  }, [selectedEvent]);
+
+  
+
+  const handleToggleNotifications = async () => {
+    setNotificationLoading(true);
+    try {
+      if (notificationsEnabled) {
+        console.log('Unsubscribing from notifications...');
+        await unsubscribeFromPushNotifications();
+        setNotificationsEnabled(false);
+        console.log('Unsubscribed successfully');
+      } else {
+        console.log('Subscribing to notifications...');
+        await subscribeToPushNotifications();
+        setNotificationsEnabled(true);
+        console.log('Subscribed successfully');
+      }
+    } catch (error) {
+      console.error('Error toggling notifications:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to toggle notifications: ${errorMessage}\n\nCheck the browser console for details.`);
+    } finally {
+      setNotificationLoading(false);
+    }
   };
+
+  const handleConfirmMedicine = async (taken: boolean, notes?: string) => {
+    if (!confirmationModal) return;
+
+    try {
+      await toast.promise(
+        fetch('/api/confirmations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            medicineId: confirmationModal.medicineId,
+            scheduledDatetime: confirmationModal.scheduledDatetime,
+            taken,
+            skipped: !taken,
+            notes
+          })
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error('Failed to save confirmation');
+          }
+          return response;
+        }),
+        {
+          pending: 'Saving confirmation...',
+          success: taken ? 'Marked as taken' : 'Marked as skipped'
+        }
+      );
+
+      // Reload confirmations and regenerate events
+      const confirmationsData = await loadConfirmations();
+      generateEvents(medicines, confirmationsData);
+      setConfirmationModal(null);
+    } catch (error) {
+      console.error('Error confirming medicine:', error);
+      toast.error('Failed to save confirmation');
+      throw error;
+    }
+  };
+
+  const handleEventConfirmation = async (taken: boolean, notes?: string) => {
+    if (!selectedEvent) return;
+
+    if (!selectedEvent.start) {
+      setEventActionError('Missing event time. Please reopen the event and try again.');
+      return;
+    }
+
+    const scheduledDatetime = new Date(selectedEvent.start).toISOString();
+
+    setEventActionLoading(true);
+    setEventActionError(null);
+
+    try {
+      await toast.promise(
+        fetch('/api/confirmations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            medicineId: selectedEvent.extendedProps.medicine.id,
+            scheduledDatetime,
+            taken,
+            skipped: !taken,
+            notes
+          })
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error('Failed to save confirmation');
+          }
+          return response;
+        }),
+        {
+          pending: 'Saving confirmation...',
+          success: taken ? 'Marked as taken' : 'Marked as skipped'
+        }
+      );
+
+      const confirmationsData = await loadConfirmations();
+      generateEvents(medicines, confirmationsData);
+      setSelectedEvent((prev) =>
+        prev
+          ? {
+              ...prev,
+              extendedProps: {
+                ...prev.extendedProps,
+                confirmed: true,
+                taken
+              }
+            }
+          : prev
+      );
+      setEventActionStatus(taken ? 'taken' : 'skipped');
+      setEventActionNotes('');
+    } catch (error) {
+      console.error('Error confirming medicine:', error);
+      setEventActionError('Failed to save confirmation. Please try again.');
+      toast.error('Failed to save confirmation');
+    } finally {
+      setEventActionLoading(false);
+    }
+  };
+
+  
 
   if (loading) {
     return <LoadingSpinner />;
