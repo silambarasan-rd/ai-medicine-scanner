@@ -38,7 +38,10 @@ export default function DigitalPharmacyPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
 
-  const fetchMedicines = useCallback(async (options?: { silent?: boolean }) => {
+  const fetchMedicines = useCallback(async (options?: {
+    silent?: boolean;
+    filters?: { query: string; category: string; tags: string };
+  }) => {
     if (!options?.silent) {
       setLoading(true);
     } else {
@@ -46,15 +49,16 @@ export default function DigitalPharmacyPage() {
     }
 
     try {
+      const filters = options?.filters ?? { query: '', category: '', tags: '' };
       const params = new URLSearchParams();
-      if (query.trim()) {
-        params.set('query', query.trim());
+      if (filters.query.trim()) {
+        params.set('query', filters.query.trim());
       }
-      if (category.trim()) {
-        params.set('category', category.trim());
+      if (filters.category.trim()) {
+        params.set('category', filters.category.trim());
       }
-      if (tagsInput.trim()) {
-        params.set('tags', tagsInput.trim());
+      if (filters.tags.trim()) {
+        params.set('tags', filters.tags.trim());
       }
 
       const response = await fetch(`/api/pharmacy-medicines?${params.toString()}`);
@@ -71,7 +75,7 @@ export default function DigitalPharmacyPage() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [category, query, tagsInput]);
+  }, []);
 
   useEffect(() => {
     const ensureSession = async () => {
@@ -80,7 +84,7 @@ export default function DigitalPharmacyPage() {
         router.push('/login');
         return;
       }
-      fetchMedicines();
+      fetchMedicines({ filters: { query: '', category: '', tags: '' } });
     };
 
     ensureSession();
@@ -210,7 +214,12 @@ export default function DigitalPharmacyPage() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <button
                 type="button"
-                onClick={() => fetchMedicines({ silent: true })}
+                onClick={() =>
+                  fetchMedicines({
+                    silent: true,
+                    filters: { query, category, tags: tagsInput },
+                  })
+                }
                 className="w-full bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue px-4 py-2 rounded-lg font-semibold transition-colors sm:w-auto"
               >
                 {refreshing ? 'Filtering...' : 'Search / Filter'}
