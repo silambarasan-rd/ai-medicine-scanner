@@ -38,11 +38,12 @@ export async function GET(request: NextRequest) {
     if (tagsParam) {
       const tagNames = normalizeTags(tagsParam.split(','));
       if (tagNames.length > 0) {
-        const { data: tagRows, error: tagError } = await supabase
-          .from('tags')
-          .select('id')
-          .eq('user_id', user.id)
-          .in('name', tagNames);
+          const tagFilters = tagNames.map((tag) => `name.ilike.%${tag}%`).join(',');
+          const { data: tagRows, error: tagError } = await supabase
+            .from('tags')
+            .select('id')
+            .eq('user_id', user.id)
+            .or(tagFilters);
 
         if (tagError) {
           console.error('Error fetching tags:', tagError);
