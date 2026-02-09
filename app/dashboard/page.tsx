@@ -11,14 +11,9 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import styles from './Dashboard.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUtensils, faBell, faBellSlash, faCircle, faCircleCheck, faSlash, faCalendarDays, faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faUtensils, faCircle, faCircleCheck, faSlash, faCalendarDays, faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
-import {
-  subscribeToPushNotifications,
-  unsubscribeFromPushNotifications,
-  checkNotificationStatus,
-  setupServiceWorkerListener
-} from '../utils/pushNotifications';
+import { setupServiceWorkerListener } from '../utils/pushNotifications';
 
 interface Medicine {
   id: string;
@@ -72,8 +67,6 @@ function DashboardContent() {
   const [confirmations, setConfirmations] = useState<ConfirmationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [notificationLoading, setNotificationLoading] = useState(false);
   const [confirmationModal, setConfirmationModal] = useState<ConfirmationData | null>(null);
   const [eventActionStatus, setEventActionStatus] = useState<'taken' | 'skipped' | ''>('');
   const [eventActionNotes, setEventActionNotes] = useState('');
@@ -310,10 +303,6 @@ function DashboardContent() {
 
         const medicineLookup = new Map(medicinesData.map((medicine) => [medicine.id, medicine]));
 
-        // Check notification status
-        const status = await checkNotificationStatus();
-        setNotificationsEnabled(status.subscribed);
-
         // Setup service worker listener for confirmation modal
         setupServiceWorkerListener((medicineId, scheduledDatetime, medicineName, dosage, mealTiming) => {
           const matchedMedicine = medicineLookup.get(medicineId);
@@ -376,29 +365,6 @@ function DashboardContent() {
   }, [selectedEvent]);
 
   
-
-  const handleToggleNotifications = async () => {
-    setNotificationLoading(true);
-    try {
-      if (notificationsEnabled) {
-        console.log('Unsubscribing from notifications...');
-        await unsubscribeFromPushNotifications();
-        setNotificationsEnabled(false);
-        console.log('Unsubscribed successfully');
-      } else {
-        console.log('Subscribing to notifications...');
-        await subscribeToPushNotifications();
-        setNotificationsEnabled(true);
-        console.log('Subscribed successfully');
-      }
-    } catch (error) {
-      console.error('Error toggling notifications:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(`Failed to toggle notifications: ${errorMessage}\n\nCheck the browser console for details.`);
-    } finally {
-      setNotificationLoading(false);
-    }
-  };
 
   const handleConfirmMedicine = async (taken: boolean, notes?: string) => {
     if (!confirmationModal) return;
@@ -509,28 +475,12 @@ function DashboardContent() {
   return (
     <div className="min-h-screen bg-rosy-granite/5 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold text-deep-space-blue mb-2 flex items-center gap-2">
-              <FontAwesomeIcon icon={faCalendarDays} className="fa-1x" />
-              Medicine Schedule
-            </h1>
-            <p className="text-blue-slate">View your medicine schedule by month, week, or day</p>
-          </div>
-          
-          {/* Notification Toggle Button */}
-          <button
-            onClick={handleToggleNotifications}
-            disabled={notificationLoading}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${
-              notificationsEnabled
-                ? 'bg-green-500 hover:bg-green-600 text-white'
-                : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
-          >
-            <FontAwesomeIcon icon={notificationsEnabled ? faBell : faBellSlash} className="fa-1x" />
-            {notificationLoading ? 'Loading...' : notificationsEnabled ? 'Notifications On' : 'Enable Notifications'}
-          </button>
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-deep-space-blue mb-2 flex items-center gap-2">
+            <FontAwesomeIcon icon={faCalendarDays} className="fa-1x" />
+            Medicine Schedule
+          </h1>
+          <p className="text-blue-slate">View your medicine schedule by month, week, or day</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
@@ -589,8 +539,8 @@ function DashboardContent() {
               <span className="text-black">Taken</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded border" style={{ borderColor: '#d1d5db', backgroundColor: '#ffffff' }}></div>
-              <span style={{ color: '#d1d5db' }}>Skipped</span>
+              <div className={styles.legendSwatchSkipped}></div>
+              <span className={styles.legendSkippedText}>Skipped</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded border border-black bg-white"></div>
@@ -613,7 +563,7 @@ function DashboardContent() {
             <h2 className="text-2xl font-bold text-deep-space-blue mb-4">
               {selectedEvent.title}
 
-              <span className='ml-1 inline-flex items-center rounded-md bg-rosy-granite/5 px-2 py-1 text-xs font-medium text-green-700 inset-ring inset-ring-pink-700/10' style={{ textTransform: 'capitalize' }}>
+              <span className={`${styles.mealBadge} ml-1 inline-flex items-center rounded-md bg-rosy-granite/5 px-2 py-1 text-xs font-medium text-green-700 inset-ring inset-ring-pink-700/10`}>
                 { selectedEvent.extendedProps.medicine.meal_timing === 'after' ? 
                   <span className="fa-stack mr-1">
                     <FontAwesomeIcon icon={faCircle} className="fa-stack-2x" />

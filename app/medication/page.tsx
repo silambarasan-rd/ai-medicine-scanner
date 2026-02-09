@@ -135,7 +135,7 @@ export default function MedicationPage() {
   return (
     <div className="min-h-screen bg-rosy-granite/5 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
-        <div className="mb-8 flex justify-between items-center">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-deep-space-blue mb-2 flex items-center gap-2">
               <FontAwesomeIcon icon={faSyringe} className="fa-1x" />
@@ -145,7 +145,7 @@ export default function MedicationPage() {
           </div>
           <button
             onClick={() => router.push('/add-medicine')}
-            className="bg-charcoal-blue hover:bg-deep-space-blue text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2"
+            className="w-full bg-charcoal-blue hover:bg-deep-space-blue text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 sm:w-auto"
           >
             <FontAwesomeIcon icon={faPlus} className="fa-1x" />
             <span>Add Medication</span>
@@ -212,7 +212,7 @@ export default function MedicationPage() {
                   )}
                 </div>
 
-                <div className="flex gap-3 pt-4 border-t border-rosy-granite/30">
+                <div className="flex flex-col gap-3 pt-4 border-t border-rosy-granite/30 sm:flex-row">
                   <button
                     onClick={() => handleEdit(medicine.id)}
                     className="flex-1 bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"

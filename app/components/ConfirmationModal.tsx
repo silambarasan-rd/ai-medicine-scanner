@@ -100,7 +100,7 @@ export default function ConfirmationModal({
                   </span>
                 ) : (
                   <span className="inline-flex items-center rounded-md bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
-                    <span className="fa-stack" style={{ fontSize: '0.8em', verticalAlign: 'middle', marginRight: '4px' }}>
+                    <span className={`fa-stack ${styles.mealIconStack}`}>
                       <FontAwesomeIcon icon={faCircle} className="fa-stack-2x" />
                       <FontAwesomeIcon icon={faSlash} className="fa-stack-1x fa-inverse" />
                       <FontAwesomeIcon icon={faUtensils} className="fa-stack-1x fa-inverse" />

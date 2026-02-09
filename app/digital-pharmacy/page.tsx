@@ -175,7 +175,7 @@ export default function DigitalPharmacyPage() {
           </div>
           <button
             onClick={() => router.push('/digital-pharmacy/add')}
-            className="bg-charcoal-blue hover:bg-deep-space-blue text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2"
+            className="w-full bg-charcoal-blue hover:bg-deep-space-blue text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 sm:w-auto"
           >
             <FontAwesomeIcon icon={faPlus} className="fa-1x" />
             <span>Add Medicine</span>
@@ -207,11 +207,11 @@ export default function DigitalPharmacyPage() {
               placeholder="Tags (comma separated)"
               className="w-full px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
             />
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <button
                 type="button"
                 onClick={() => fetchMedicines({ silent: true })}
-                className="flex-1 bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue px-4 py-2 rounded-lg font-semibold transition-colors"
+                className="w-full bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue px-4 py-2 rounded-lg font-semibold transition-colors sm:w-auto"
               >
                 {refreshing ? 'Filtering...' : 'Search / Filter'}
               </button>
@@ -219,7 +219,7 @@ export default function DigitalPharmacyPage() {
                 type="button"
                 onClick={() => router.push('/digital-pharmacy/history')}
                 aria-label="View stock history"
-                className="bg-white border border-dim-grey/40 hover:border-charcoal-blue text-charcoal-blue px-3 py-2 rounded-lg transition-colors"
+                className="w-full bg-white border border-dim-grey/40 hover:border-charcoal-blue text-charcoal-blue px-3 py-2 rounded-lg transition-colors sm:w-auto"
               >
                 <FontAwesomeIcon icon={faClock} className="w-5 h-5 fa-1x" />
               </button>
@@ -286,10 +286,10 @@ export default function DigitalPharmacyPage() {
                   <div className="text-sm text-charcoal-blue">
                     <span className="font-semibold">Stock:</span> {medicine.available_stock} {medicine.stock_unit}
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => router.push(`/digital-pharmacy/edit/${medicine.id}`)}
-                      className="bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                      className="w-full bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 sm:w-auto"
                     >
                       <FontAwesomeIcon icon={faPenToSquare} className="fa-1x" />
                       Edit
@@ -297,7 +297,7 @@ export default function DigitalPharmacyPage() {
                     <button
                       onClick={() => handleDelete(medicine.id)}
                       disabled={actionId === medicine.id}
-                      className={`font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 ${
+                      className={`w-full font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 sm:w-auto ${
                         actionId === medicine.id
                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           : 'bg-red-100 hover:bg-red-200 text-red-700'
@@ -313,7 +313,7 @@ export default function DigitalPharmacyPage() {
                     <button
                       onClick={() => handleRefill(medicine)}
                       disabled={actionId === medicine.id}
-                      className={`font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 ${
+                      className={`w-full font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 sm:w-auto ${
                         actionId === medicine.id
                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'

@@ -269,7 +269,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Save Button */}
-          <div className="mt-8 flex gap-4">
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row">
             <button
               onClick={handleSave}
               disabled={saving}

@@ -201,18 +201,18 @@ export default function AddPharmacyMedicinePage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-charcoal-blue mb-2">Medicine Name *</label>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   type="text"
                   value={form.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="e.g., Dolo 650"
-                  className="flex-1 px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
+                  className="w-full flex-1 px-4 py-2 border border-dim-grey/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-charcoal-blue focus:border-transparent"
                 />
                 <button
                   type="button"
                   onClick={() => setIsScannerOpen(true)}
-                  className="px-4 py-2 bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue rounded-lg font-semibold transition-colors flex items-center gap-2"
+                  className="w-full px-4 py-2 bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 sm:w-auto"
                 >
                   <FontAwesomeIcon icon={faCamera} className="fa-1x" />
                   Scan
