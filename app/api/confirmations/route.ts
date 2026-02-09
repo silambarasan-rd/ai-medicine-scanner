@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     const shouldDecrement = Boolean(taken) && !existingConfirmation?.taken;
+    const shouldIncrement = Boolean(existingConfirmation?.taken) && !taken;
 
     // Upsert confirmation record
     const { data, error } = await supabase
@@ -94,6 +95,58 @@ export async function POST(request: NextRequest) {
                 stock_unit: pharmacy.stock_unit || 'tablet',
                 source: 'taken',
                 note: null,
+              });
+
+            if (historyError) {
+              console.error('Error creating pharmacy stock history:', historyError);
+            }
+          }
+        }
+      }
+    } else if (shouldIncrement) {
+      const { data: medicine, error: medicineError } = await supabase
+        .from('user_medicines')
+        .select('pharmacy_medicine_id, dose_amount')
+        .eq('id', medicineId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (medicineError) {
+        console.error('Error loading medicine for stock update:', medicineError);
+      } else if (medicine?.pharmacy_medicine_id && medicine?.dose_amount) {
+        const { data: pharmacy, error: pharmacyError } = await supabase
+          .from('pharmacy_medicines')
+          .select('available_stock, stock_unit')
+          .eq('id', medicine.pharmacy_medicine_id)
+          .eq('user_id', user.id)
+          .single();
+
+        if (pharmacyError) {
+          console.error('Error loading pharmacy stock:', pharmacyError);
+        } else {
+          const currentStock = Number(pharmacy?.available_stock || 0);
+          const doseAmount = Number(medicine.dose_amount);
+          const nextStock = currentStock + doseAmount;
+          const { error: stockError } = await supabase
+            .from('pharmacy_medicines')
+            .update({ available_stock: nextStock })
+            .eq('id', medicine.pharmacy_medicine_id)
+            .eq('user_id', user.id);
+
+          if (stockError) {
+            console.error('Error updating pharmacy stock:', stockError);
+          } else {
+            const { error: historyError } = await supabase
+              .from('pharmacy_stock_history')
+              .insert({
+                user_id: user.id,
+                medicine_id: medicine.pharmacy_medicine_id,
+                delta: doseAmount,
+                before_stock: currentStock,
+                after_stock: nextStock,
+                stock_unit: pharmacy.stock_unit || 'tablet',
+                source: 'manual_adjustment',
+                note: 'reverted_taken',
               });
 
             if (historyError) {

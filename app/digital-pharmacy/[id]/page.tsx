@@ -78,16 +78,16 @@ export default function PharmacyMedicineDetailsPage() {
             <p className="text-sm text-blue-slate">Digital Pharmacy</p>
             <h1 className="text-3xl font-bold text-deep-space-blue">{medicine.name}</h1>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <button
               onClick={() => router.push('/digital-pharmacy')}
-              className="bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue px-5 py-2 rounded-lg font-semibold transition-colors"
+              className="w-full bg-dim-grey/20 hover:bg-dim-grey/30 text-charcoal-blue px-5 py-2 rounded-lg font-semibold transition-colors sm:w-auto"
             >
               Back
             </button>
             <button
               onClick={() => router.push(`/digital-pharmacy/edit/${medicine.id}`)}
-              className="bg-charcoal-blue hover:bg-deep-space-blue text-white px-5 py-2 rounded-lg font-semibold transition-colors"
+              className="w-full bg-charcoal-blue hover:bg-deep-space-blue text-white px-5 py-2 rounded-lg font-semibold transition-colors sm:w-auto"
             >
               Edit
             </button>

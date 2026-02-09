@@ -4,6 +4,7 @@ import { createClient } from '../utils/supabase/client';
 import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import LoadingSpinner from '../components/LoadingSpinner';
+import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShieldHalved, faMobileScreen, faStar } from '@fortawesome/free-solid-svg-icons';
 
@@ -69,14 +70,17 @@ function LoginForm() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-rosy-granite via-blue-slate to-deep-space-blue flex items-center justify-center px-4 py-5">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+        <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8">
           {/* Logo and Title */}
           <div className="text-center mb-8">
             <div className="mb-4 flex justify-center">
-              <img
+              <Image
                 src="/medicine-logo.svg"
                 alt="MathirAI"
+                width={120}
+                height={60}
                 className="h-[60px] w-auto"
+                priority
               />
             </div>
             <h1 className="text-3xl font-bold text-deep-space-blue mb-2">MathirAI</h1>
@@ -99,7 +103,7 @@ function LoginForm() {
             <label htmlFor="email" className="block text-sm font-medium text-charcoal-blue mb-2">
               Email Address
             </label>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <input
                 id="email"
                 type="email"
@@ -108,12 +112,12 @@ function LoginForm() {
                 placeholder="your@email.com"
                 required
                 disabled={loading !== null}
-                className="flex-1 px-4 py-3 border border-dim-grey/40 rounded-lg focus:ring-2 focus:ring-charcoal-blue focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex-1 px-4 py-3 border border-dim-grey/40 rounded-lg focus:ring-2 focus:ring-charcoal-blue focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <button
                 type="submit"
                 disabled={loading !== null || !email}
-                className="px-6 py-3 bg-charcoal-blue text-white font-semibold rounded-lg hover:bg-deep-space-blue transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-6 py-3 bg-charcoal-blue text-white font-semibold rounded-lg hover:bg-deep-space-blue transition-all disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto"
               >
                 {loading === 'email' ? (
                   <div className="w-5 h-5 border-2 border-blue-300 border-t-white rounded-full animate-spin" />

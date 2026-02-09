@@ -1,5 +1,21 @@
 .calendarContainer :global(.fc) {
   font-family: inherit;
+  width: 100%;
+}
+
+.calendarContainer :global(.fc-toolbar) {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.calendarContainer :global(.fc-toolbar-chunk) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.calendarContainer :global(.fc-button-group) {
+  flex-wrap: wrap;
 }
 
 .calendarContainer :global(.fc-button-primary) {
@@ -19,4 +35,52 @@
 
 .calendarContainer :global(.fc-theme-standard .fc-daygrid-day.fc-day-other) {
   background-color: #f4f4f7;
+}
+
+@media (max-width: 768px) {
+  .calendarContainer :global(.fc-toolbar) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .calendarContainer :global(.fc-toolbar-title) {
+    font-size: 1.1rem;
+  }
+
+  .calendarContainer :global(.fc-button) {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .calendarContainer :global(.fc-daygrid-day-number) {
+    font-size: 0.75rem;
+  }
+
+  .calendarContainer :global(.fc-event-title) {
+    font-size: 0.75rem;
+  }
+
+  .calendarContainer :global(.fc-list-day-text),
+  .calendarContainer :global(.fc-list-day-side-text),
+  .calendarContainer :global(.fc-list-event-title) {
+    font-size: 0.8rem;
+  }
+}
+
+.legendSwatchSkipped {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+}
+
+.legendSkippedText {
+  color: #d1d5db;
+}
+
+.mealBadge {
+  text-transform: capitalize;
 }

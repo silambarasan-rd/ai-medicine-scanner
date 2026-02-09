@@ -112,6 +112,12 @@
   margin-top: 0.5rem;
 }
 
+.mealIconStack {
+  font-size: 0.8em;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
 .statusSection {
   margin-bottom: 1rem;
 }
