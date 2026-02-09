@@ -228,6 +228,8 @@ export default function DigitalPharmacyPage() {
                 type="button"
                 onClick={() => router.push('/digital-pharmacy/history')}
                 aria-label="View stock history"
+                data-tooltip-id="app-tooltip"
+                data-tooltip-content="View stock history"
                 className="w-full bg-white border border-dim-grey/40 hover:border-charcoal-blue text-charcoal-blue px-3 py-2 rounded-lg transition-colors sm:w-auto"
               >
                 <FontAwesomeIcon icon={faClock} className="w-5 h-5 fa-1x" />

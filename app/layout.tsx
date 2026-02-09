@@ -5,6 +5,7 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import ServiceWorkerRegistrar from "./components/ServiceWorkerRegistrar";
 import Navbar from "./components/Navbar";
 import ToastProvider from "./components/ToastProvider";
+import TooltipProvider from "./components/TooltipProvider";
 
 config.autoAddCss = false;
 
@@ -49,6 +50,7 @@ export default function RootLayout({
         <Navbar />
         {children}
         <ToastProvider />
+        <TooltipProvider />
         <ServiceWorkerRegistrar />
       </body>
     </html>

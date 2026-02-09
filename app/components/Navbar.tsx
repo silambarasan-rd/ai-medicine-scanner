@@ -117,6 +117,8 @@ export default function Navbar() {
   };
 
   const isActive = (href: string) => pathname === href;
+  const notificationLabel = notificationsEnabled ? 'Disable notifications' : 'Enable notifications';
+  const navToggleLabel = 'Toggle navigation';
 
   // Don't show navbar on login page
   if (pathname === '/login') {
@@ -131,7 +133,9 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-              aria-label="Toggle navigation"
+              aria-label={navToggleLabel}
+              data-tooltip-id="app-tooltip"
+              data-tooltip-content={navToggleLabel}
               aria-controls="mobile-nav"
               aria-expanded={isMobileMenuOpen}
               className="md:hidden h-10 w-10 rounded-full border border-rosy-granite/40 flex items-center justify-center text-charcoal-blue transition-colors hover:border-charcoal-blue hover:text-charcoal-blue"
@@ -192,8 +196,9 @@ export default function Navbar() {
             <button
               onClick={handleToggleNotifications}
               disabled={notificationLoading}
-              title={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
-              aria-label={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
+              aria-label={notificationLabel}
+              data-tooltip-id="app-tooltip"
+              data-tooltip-content={notificationLabel}
               className={`h-10 w-10 rounded-full border border-rosy-granite/40 flex items-center justify-center text-charcoal-blue transition-colors hover:border-charcoal-blue hover:text-charcoal-blue disabled:opacity-50 disabled:cursor-not-allowed ${
                 notificationsEnabled ? 'bg-green-50' : 'bg-white'
               }`}

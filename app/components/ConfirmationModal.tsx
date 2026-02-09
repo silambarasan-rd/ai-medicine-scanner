@@ -71,7 +71,13 @@ export default function ConfirmationModal({
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2>Medicine Confirmation</h2>
-          <button className={styles.closeButton} onClick={onClose} aria-label="Close">
+          <button
+            className={styles.closeButton}
+            onClick={onClose}
+            aria-label="Close"
+            data-tooltip-id="app-tooltip"
+            data-tooltip-content="Close"
+          >
             ×
           </button>
         </div>
