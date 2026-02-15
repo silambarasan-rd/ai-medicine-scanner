@@ -343,7 +343,7 @@ export async function POST(req: NextRequest) {
 
       // Generic parameter validation: Check for missing required parameters
       if (tool) {
-        const requiredParams = tool.inputSchema.required || [];
+        const requiredParams = tool.inputSchema?.required || [];
         const missingParams = requiredParams.filter(param => {
           const value = params[param];
           return value === undefined || value === null || value === '';
@@ -352,7 +352,7 @@ export async function POST(req: NextRequest) {
         if (missingParams.length > 0) {
           // Ask user for the first missing parameter
           const missingParam = missingParams[0];
-          const paramDef = tool.inputSchema.properties[missingParam];
+          const paramDef = tool.inputSchema?.properties?.[missingParam];
           const paramDescription = paramDef?.description || missingParam;
           
           // Generate a user-friendly message asking for the missing parameter
