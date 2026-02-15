@@ -92,7 +92,7 @@ export default function ChatbotPage() {
       let assistantMessage: ChatMessage;
 
       if (result.actionProposed && findTool(result.actionProposed.tool)?.requiresConfirmation) {
-        // Save with proposed action, wait for confirmation
+        // Save with proposed action, wait for confirmation (write operations)
         assistantMessage = await saveChatMessage(
           userId,
           sessionId,
@@ -109,7 +109,7 @@ export default function ChatbotPage() {
           description: result.actionProposed.description
         });
       } else {
-        // For read-only operations, just save the response
+        // For read-only operations or simple responses, just save and display the response
         assistantMessage = await saveChatMessage(userId, sessionId, 'assistant', result.response);
       }
 

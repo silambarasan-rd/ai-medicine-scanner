@@ -5,6 +5,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
+import { MCP_TOOLS, findTool } from "@/app/lib/mcp-tools";
 
 const AI_PROVIDER = process.env.AI_PROVIDER || "gemini";
 
@@ -44,6 +45,86 @@ function getOpenAIClient() {
 }
 
 /**
+ * Execute a tool and return results
+ */
+async function executeTool(
+  toolName: string,
+  params: Record<string, unknown>,
+  supabase: Awaited<ReturnType<typeof createClient>>
+): Promise<Record<string, unknown>> {
+  const tool = findTool(toolName);
+  if (!tool) {
+    throw new Error(`Unknown tool: ${toolName}`);
+  }
+
+  try {
+    switch (toolName) {
+      case "list_medicines": {
+        const { data, error } = await supabase
+          .from('user_medicines')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        return { medicines: data || [] };
+      }
+
+      case "list_pharmacy_medicines": {
+        let query = supabase.from('pharmacy_medicines').select('*');
+        if (params.limit) query = query.limit(params.limit as number);
+        if (params.offset) query = query.range((params.offset as number), (params.offset as number) + ((params.limit as number) || 50) - 1);
+        const { data, error } = await query.order('created_at', { ascending: false });
+        if (error) throw error;
+        return { medicines: data || [] };
+      }
+
+      case "list_confirmations": {
+        const daysBack = (params.days as number) || 7;
+        const fromDate = new Date();
+        fromDate.setDate(fromDate.getDate() - daysBack);
+
+        const { data, error } = await supabase
+          .from('confirmations')
+          .select('*')
+          .gte('date_take', fromDate.toISOString().split('T')[0])
+          .order('date_take', { ascending: false });
+        if (error) throw error;
+        return { confirmations: data || [] };
+      }
+
+      case "list_hospitals": {
+        let query = supabase.from('hospitals').select('*');
+        if (params.district) query = query.ilike('district', `%${params.district}%`);
+        if (params.speciality) query = query.ilike('speciality', `%${params.speciality}%`);
+        if (params.limit) query = query.limit(params.limit as number);
+        if (params.offset) query = query.range((params.offset as number), (params.offset as number) + ((params.limit as number) || 50) - 1);
+        const { data, error } = await query.order('name', { ascending: true });
+        if (error) throw error;
+        return { hospitals: data || [] };
+      }
+
+      case "get_profile": {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) throw new Error('Not authenticated');
+
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        if (error && error.code !== 'PGRST116') throw error;
+        return data || { id: user.id, email: user.email };
+      }
+
+      default:
+        throw new Error(`Tool execution not implemented: ${toolName}`);
+    }
+  } catch (error) {
+    console.error(`Error executing tool ${toolName}:`, error);
+    throw error;
+  }
+}
+
+/**
  * Build system prompt for the AI
  */
 function buildSystemPrompt(tools: ToolDefinition[]): string {
@@ -71,30 +152,17 @@ Required: ${tool.required.join(', ')}`;
 You have access to the following tools to help users with their requests:
 ${toolDescriptions}
 
-When a user asks you to perform an action:
-1. Understand what they want to do
-2. Identify which tool(s) would help
-3. If action requires confirmation (write operations), propose it with:
-   - Which tool to use
-   - What parameters to send
-   - A brief explanation of what will happen
-   - requiresConfirmation: true/false
+IMPORTANT: When responding to user requests:
+1. For READ-ONLY operations (list_*, get_*): 
+   - Respond with: {"response": "I will fetch this data for you", "actionProposed": {"tool": "tool_name", "params": {...}, "description": "...", "requiresConfirmation": false}}
+   - Return the tool call ONLY (no additional explanation)
+   - The backend will execute the tool and format results
 
-4. For read-only operations, provide the information directly without proposing actions.
+2. For WRITE operations (add_*, update_*, delete_*, record_*):
+   - Propose action: {"response": "I can do this for you. Please confirm.", "actionProposed": {"tool": "tool_name", "params": {...}, "description": "...", "requiresConfirmation": true}}
+   - Wait for user confirmation before execution
 
-Always be clear, concise, and ask for clarification if needed.
-Format your responses in natural language. When proposing an action, clearly state what you're about to do.
-
-IMPORTANT: Return a JSON response in this format (no markdown):
-{
-  "response": "Your natural language response to the user",
-  "actionProposed": null or {
-    "tool": "tool_name",
-    "params": {...parameter values...},
-    "description": "What this action will do",
-    "requiresConfirmation": true/false
-  }
-}`;
+Always format responses as valid JSON with keys: "response" and "actionProposed" (or null).`;
 }
 
 /**
@@ -214,6 +282,54 @@ export async function POST(req: NextRequest) {
       default:
         result = await chatWithGemini(systemPrompt, conversationHistory, userMessage);
         break;
+    }
+
+    // If the AI proposed a read-only action, execute it and include results in response
+    if (result.actionProposed && !result.actionProposed.requiresConfirmation) {
+      try {
+        const toolResult = await executeTool(result.actionProposed.tool, result.actionProposed.params, supabase);
+        
+        // Format the result into a human-readable response
+        let formattedResult = '';
+        if (result.actionProposed.tool === 'list_hospitals') {
+          const hospitals = (toolResult as Record<string, unknown>).hospitals as Array<Record<string, unknown>> || [];
+          formattedResult = `Found ${hospitals.length} hospitals:\n\n${hospitals
+            .map((h: Record<string, unknown>) => `• ${h.name} (${h.district})\n  Phone: ${h.phone || 'N/A'}\n  Specialty: ${h.speciality || 'General'}`)
+            .join('\n\n')}`;
+        } else if (result.actionProposed.tool === 'list_medicines') {
+          const medicines = (toolResult as Record<string, unknown>).medicines as Array<Record<string, unknown>> || [];
+          formattedResult = `You have ${medicines.length} scheduled medicines:\n\n${medicines
+            .map((m: Record<string, unknown>) => `• ${m.name} - ${m.dosage} (${m.occurrence})`)
+            .join('\n')}`;
+        } else if (result.actionProposed.tool === 'list_pharmacy_medicines') {
+          const medicines = (toolResult as Record<string, unknown>).medicines as Array<Record<string, unknown>> || [];
+          formattedResult = `Your pharmacy inventory has ${medicines.length} items:\n\n${medicines
+            .map((m: Record<string, unknown>) => `• ${m.name} - ${m.quantity} ${m.unit}`)
+            .join('\n')}`;
+        } else if (result.actionProposed.tool === 'list_confirmations') {
+          const confirmations = (toolResult as Record<string, unknown>).confirmations as Array<Record<string, unknown>> || [];
+          formattedResult = `Recent confirmations:\n\n${confirmations
+            .map((c: Record<string, unknown>) => `• ${c.date_take}: ${c.status}`)
+            .join('\n')}`;
+        } else {
+          formattedResult = JSON.stringify(toolResult, null, 2);
+        }
+
+        return NextResponse.json({
+          response: formattedResult,
+          actionProposed: null, // Don't propose action again after execution
+          sessionId,
+          toolExecuted: true
+        });
+      } catch (error) {
+        console.error('Error executing read-only tool:', error);
+        return NextResponse.json({
+          response: `Sorry, I encountered an error fetching that data: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          actionProposed: null,
+          sessionId,
+          toolExecuted: false
+        });
+      }
     }
 
     return NextResponse.json({

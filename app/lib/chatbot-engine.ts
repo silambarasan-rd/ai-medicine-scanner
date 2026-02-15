@@ -217,9 +217,9 @@ export async function executeTool(
       
       case "list_pharmacy_medicines":
         const queryParams = new URLSearchParams();
-        if (params.tags) queryParams.append("tags", params.tags.join(","));
-        if (params.limit) queryParams.append("limit", params.limit);
-        if (params.offset) queryParams.append("offset", params.offset);
+        if (params.tags && Array.isArray(params.tags)) queryParams.append("tags", (params.tags as string[]).join(","));
+        if (params.limit) queryParams.append("limit", String(params.limit));
+        if (params.offset) queryParams.append("offset", String(params.offset));
         return await callApi("GET", `/api/pharmacy-medicines?${queryParams.toString()}`);
       
       case "add_pharmacy_medicine":
@@ -233,8 +233,8 @@ export async function executeTool(
       
       case "list_confirmations":
         const confirmParams = new URLSearchParams();
-        if (params.days) confirmParams.append("days", params.days);
-        if (params.limit) confirmParams.append("limit", params.limit);
+        if (params.days) confirmParams.append("days", String(params.days));
+        if (params.limit) confirmParams.append("limit", String(params.limit));
         return await callApi("GET", `/api/confirmations?${confirmParams.toString()}`);
       
       case "record_confirmation":
@@ -242,10 +242,10 @@ export async function executeTool(
       
       case "list_hospitals":
         const hospParams = new URLSearchParams();
-        if (params.district) hospParams.append("district", params.district);
-        if (params.speciality) hospParams.append("speciality", params.speciality);
-        if (params.limit) hospParams.append("limit", params.limit);
-        if (params.offset) hospParams.append("offset", params.offset);
+        if (params.district) hospParams.append("district", String(params.district));
+        if (params.speciality) hospParams.append("speciality", String(params.speciality));
+        if (params.limit) hospParams.append("limit", String(params.limit));
+        if (params.offset) hospParams.append("offset", String(params.offset));
         return await callApi("GET", `/api/hospitals?${hospParams.toString()}`);
       
       case "get_profile":
