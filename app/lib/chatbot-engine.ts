@@ -225,7 +225,16 @@ export async function executeTool(
         return await callApi("GET", `/api/pharmacy-medicines?${queryParams.toString()}`);
       
       case "add_pharmacy_medicine":
-        return await callApi("POST", "/api/pharmacy-medicines", params);
+        // Ensure required fields have defaults
+        const pharmParams = {
+          ...params,
+          category: params.category || 'other',
+          tags: Array.isArray(params.tags) && params.tags.length > 0 
+            ? params.tags 
+            : ['general'],
+          available_stock: params.available_stock ?? 0
+        };
+        return await callApi("POST", "/api/pharmacy-medicines", pharmParams);
       
       case "update_pharmacy_medicine":
         return await callApi("PUT", `/api/pharmacy-medicines/${params.id}`, params);

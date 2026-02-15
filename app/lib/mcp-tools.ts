@@ -33,7 +33,8 @@ export const MCP_TOOLS: MCPTool[] = [
         name: { type: "string", description: "Medicine name" },
         pharmacy_medicine_id: { type: "string", description: "ID of the pharmacy medicine" },
         dosage: { type: "string", description: "Dosage (e.g., '500mg', '10ml')" },
-        dose_unit: { type: "string", description: "Unit of measurement (mg, ml, etc)" },
+        dose_unit: { type: "string", description: "Unit of measurement (mg, ml, tablet, capsule, etc)" },
+        dose_amount: { type: "number", description: "Dose amount per intake (e.g., 1, 2, 0.5)" },
         occurrence: { 
           type: "string", 
           enum: ["once", "daily", "weekly", "monthly", "custom"],
@@ -41,7 +42,7 @@ export const MCP_TOOLS: MCPTool[] = [
         },
         custom_occurrence: { type: "string", description: "Custom occurrence pattern (e.g., 'twice a week')" },
         scheduled_date: { type: "string", description: "Start date (YYYY-MM-DD)" },
-        timing: { type: "string", description: "Time to take (HH:MM)" },
+        timing: { type: "string", description: "Time to take (HH:MM format, e.g., '09:00', '14:30')" },
         meal_timing: { 
           type: "string",
           enum: ["before", "with", "after"],
@@ -50,7 +51,7 @@ export const MCP_TOOLS: MCPTool[] = [
         notes: { type: "string", description: "Additional notes" },
         timezone: { type: "string", description: "User timezone (default UTC)" }
       },
-      required: ["name", "pharmacy_medicine_id", "dose_unit", "occurrence", "scheduled_date", "timing", "meal_timing"]
+      required: ["name", "pharmacy_medicine_id", "dose_unit", "occurrence", "scheduled_date"]
     },
     requiresConfirmation: true
   },
@@ -115,18 +116,24 @@ export const MCP_TOOLS: MCPTool[] = [
       type: "object",
       properties: {
         name: { type: "string", description: "Medicine name" },
-        brand: { type: "string", description: "Brand name" },
-        active_ingredient: { type: "string", description: "Active ingredient" },
-        dosage: { type: "string", description: "Dosage strength" },
-        form: { type: "string", description: "Form (tablet, syrup, injection, etc)" },
-        quantity: { type: "number", description: "Quantity in stock" },
-        unit: { type: "string", description: "Unit (pieces, bottles, boxes, etc)" },
-        expiry_date: { type: "string", description: "Expiry date (YYYY-MM-DD)" },
-        storage_location: { type: "string", description: "Where it's stored" },
-        notes: { type: "string", description: "Additional notes" },
-        tags: { type: "array", items: { type: "string" }, description: "Tags for categorization" }
+        dosage: { type: "string", description: "Dosage strength (e.g., 500mg, 10ml)" },
+        description: { type: "string", description: "Description of the medicine" },
+        category: { 
+          type: "string", 
+          enum: ["tablet", "capsule", "syrup", "injection", "ointment", "drops", "other"],
+          description: "Category/form of medicine (REQUIRED)" 
+        },
+        safety_warnings: { type: "string", description: "Safety warnings or side effects" },
+        image_url: { type: "string", description: "Image URL of the medicine" },
+        available_stock: { type: "number", description: "Quantity in stock (default 0)" },
+        stock_unit: { type: "string", description: "Unit of stock (tablet, ml, bottle, etc)" },
+        tags: { 
+          type: "array", 
+          items: { type: "string" }, 
+          description: "At least one tag for categorization (e.g., 'painkiller', 'antibiotic') - REQUIRED" 
+        }
       },
-      required: ["name", "dosage", "quantity", "unit"]
+      required: ["name", "category", "tags"]
     },
     requiresConfirmation: true
   },
