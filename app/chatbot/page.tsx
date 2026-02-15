@@ -255,6 +255,36 @@ export default function ChatbotPage() {
                 />
               )}
 
+              {/* Show inline confirmation if action is pending */}
+              {msg.actionProposed && !msg.actionConfirmed && msg.id === confirmingAction?.messageId && (
+                <div className={styles.inlineConfirmation}>
+                  <div className={styles.confirmHeader}>
+                    <strong>⚠️ Confirmation Required</strong>
+                  </div>
+                  <p className={styles.confirmDescription}>{msg.actionProposed.description}</p>
+                  <details className={styles.paramsDetails}>
+                    <summary>View parameters</summary>
+                    <pre className={styles.paramsJson}>{JSON.stringify(msg.actionProposed.params, null, 2)}</pre>
+                  </details>
+                  <div className={styles.confirmButtons}>
+                    <button
+                      className={`${styles.button} ${styles.confirmBtn}`}
+                      onClick={handleConfirmAction}
+                      disabled={executingAction}
+                    >
+                      {executingAction ? '⏳ Executing...' : '✓ Confirm & Execute'}
+                    </button>
+                    <button
+                      className={`${styles.button} ${styles.cancelBtn}`}
+                      onClick={handleCancelAction}
+                      disabled={executingAction}
+                    >
+                      ✗ Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Show action if confirmed */}
               {msg.actionConfirmed && msg.actionResult && (
                 <div className={styles.actionResult}>
@@ -268,38 +298,6 @@ export default function ChatbotPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Confirmation Modal */}
-      {confirmingAction && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <h3>Confirm Action</h3>
-            <p className={styles.modalDescription}>{confirmingAction.description}</p>
-
-            <div className={styles.paramsList}>
-              <h4>Parameters:</h4>
-              <pre>{JSON.stringify(confirmingAction.params, null, 2)}</pre>
-            </div>
-
-            <div className={styles.modalButtons}>
-              <button
-                className={`${styles.button} ${styles.confirmBtn}`}
-                onClick={handleConfirmAction}
-                disabled={executingAction}
-              >
-                {executingAction ? 'Executing...' : 'Confirm & Execute'}
-              </button>
-              <button
-                className={`${styles.button} ${styles.cancelBtn}`}
-                onClick={handleCancelAction}
-                disabled={executingAction}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Input Form */}
       <form className={styles.inputForm} onSubmit={handleSendMessage}>
         <input
@@ -307,12 +305,12 @@ export default function ChatbotPage() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask me anything about your medicines..."
-          disabled={loading || !!confirmingAction}
+          disabled={loading}
           className={styles.input}
         />
         <button
           type="submit"
-          disabled={loading || !input.trim() || !!confirmingAction}
+          disabled={loading || !input.trim()}
           className={styles.sendButton}
         >
           {loading ? 'Thinking...' : 'Send'}

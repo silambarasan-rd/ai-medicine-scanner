@@ -184,10 +184,12 @@ ${toolDescriptions}
 - Only propose action when you have: name + category + at least one tag
 
 📌 For add_medicine (scheduling):
-- Required: name, pharmacy_medicine_id, dose_unit, occurrence, scheduled_date
-- Optional: timing, meal_timing, dose_amount, dosage, notes
+- Required: name, pharmacy_medicine_id, dose_unit, occurrence, scheduled_date, timing, meal_timing
+- Optional: dose_amount, dosage, notes, timezone
 - If missing required fields: ASK conversationally, set actionProposed to null
 - If user says "add medicine" without context: Ask if they mean scheduling or adding to pharmacy inventory
+- Timing format: HH:MM (e.g., "09:00", "14:30")
+- Meal timing: must be "before", "with", or "after"
 
 📌 For record_confirmation:
 - Required: medicine_id, date_take, status

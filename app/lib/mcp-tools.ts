@@ -51,7 +51,7 @@ export const MCP_TOOLS: MCPTool[] = [
         notes: { type: "string", description: "Additional notes" },
         timezone: { type: "string", description: "User timezone (default UTC)" }
       },
-      required: ["name", "pharmacy_medicine_id", "dose_unit", "occurrence", "scheduled_date"]
+      required: ["name", "pharmacy_medicine_id", "dose_unit", "occurrence", "scheduled_date", "timing", "meal_timing"]
     },
     requiresConfirmation: true
   },
