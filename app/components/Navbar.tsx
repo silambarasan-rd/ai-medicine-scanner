@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { createClient } from '../utils/supabase/client';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faBell, faBellSlash, faCapsules, faChevronDown, faHouse, faHospital, faSyringe, faUser, faSignOutAlt, faXmark, faRobot } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faBell, faBellSlash, faChevronDown, faUser, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import { checkNotificationStatus, subscribeToPushNotifications, unsubscribeFromPushNotifications } from '../utils/pushNotifications';
 
 interface UserProfile {
@@ -15,13 +15,17 @@ interface UserProfile {
   profile_picture_url?: string;
 }
 
-export default function Navbar() {
+interface NavbarProps {
+  sidebarOpen?: boolean;
+  onSidebarToggle?: () => void;
+}
+
+export default function Navbar({ sidebarOpen = true, onSidebarToggle }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = useMemo(() => createClient(), []);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationLoading, setNotificationLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -71,7 +75,6 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    setIsMobileMenuOpen(false);
     setIsDropdownOpen(false);
   }, [pathname]);
 
@@ -92,10 +95,7 @@ export default function Navbar() {
     router.push('/login');
   };
 
-  const handleMobileNavClose = () => {
-    setIsMobileMenuOpen(false);
-    setIsDropdownOpen(false);
-  };
+
 
   const handleToggleNotifications = async () => {
     setNotificationLoading(true);
@@ -116,9 +116,8 @@ export default function Navbar() {
     }
   };
 
-  const isActive = (href: string) => pathname === href;
   const notificationLabel = notificationsEnabled ? 'Disable notifications' : 'Enable notifications';
-  const navToggleLabel = 'Toggle navigation';
+  const sidebarToggleLabel = sidebarOpen ? 'Close sidebar' : 'Open sidebar';
 
   // Don't show navbar on login page
   if (pathname === '/login') {
@@ -126,22 +125,23 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-white shadow-md border-b border-rosy-granite/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="bg-white shadow-md border-b border-rosy-granite/30 fixed top-0 left-0 right-0 z-[1000]">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-              aria-label={navToggleLabel}
-              data-tooltip-id="app-tooltip"
-              data-tooltip-content={navToggleLabel}
-              aria-controls="mobile-nav"
-              aria-expanded={isMobileMenuOpen}
-              className="md:hidden h-10 w-10 rounded-full border border-rosy-granite/40 flex items-center justify-center text-charcoal-blue transition-colors hover:border-charcoal-blue hover:text-charcoal-blue"
-            >
-              <FontAwesomeIcon icon={isMobileMenuOpen ? faXmark : faBars} className="fa-1x" />
-            </button>
+            {/* Sidebar Toggle - Only visible on mobile/tablet */}
+            {onSidebarToggle && (
+              <button
+                type="button"
+                onClick={onSidebarToggle}
+                aria-label={sidebarToggleLabel}
+                data-tooltip-id="app-tooltip"
+                data-tooltip-content={sidebarToggleLabel}
+                className="lg:hidden h-10 w-10 rounded-full border border-rosy-granite/40 flex items-center justify-center text-charcoal-blue transition-colors hover:border-charcoal-blue hover:text-charcoal-blue"
+              >
+                <FontAwesomeIcon icon={faBars} className="fa-1x" />
+              </button>
+            )}
 
             {/* Logo/Brand */}
             <div className="flex-shrink-0">
@@ -153,65 +153,6 @@ export default function Navbar() {
                 </h1>
               </Link>
             </div>
-          </div>
-
-          {/* Nav Links */}
-          <div className="hidden md:flex items-center gap-8">
-            <Link
-              href="/dashboard"
-              className={`transition-colors flex items-center gap-2 ${
-                isActive('/dashboard')
-                  ? 'text-charcoal-blue border-b-2 border-charcoal-blue pb-1'
-                  : 'text-charcoal-blue hover:text-charcoal-blue'
-              }`}
-            >
-              <FontAwesomeIcon icon={faHouse} className="fa-1x" />
-              Dashboard
-            </Link>
-            <Link
-              href="/digital-pharmacy"
-              className={`transition-colors flex items-center gap-2 ${
-                isActive('/digital-pharmacy')
-                  ? 'text-charcoal-blue border-b-2 border-charcoal-blue pb-1'
-                  : 'text-charcoal-blue hover:text-charcoal-blue'
-              }`}
-            >
-              <FontAwesomeIcon icon={faCapsules} className="fa-1x" />
-              Digital Pharmacy
-            </Link>
-            <Link
-              href="/hospitals"
-              className={`transition-colors flex items-center gap-2 ${
-                isActive('/hospitals')
-                  ? 'text-charcoal-blue border-b-2 border-charcoal-blue pb-1'
-                  : 'text-charcoal-blue hover:text-charcoal-blue'
-              }`}
-            >
-              <FontAwesomeIcon icon={faHospital} className="fa-1x" />
-              Hospitals
-            </Link>
-            <Link
-              href="/medication"
-              className={`transition-colors flex items-center gap-2 ${
-                isActive('/medication')
-                  ? 'text-charcoal-blue border-b-2 border-charcoal-blue pb-1'
-                  : 'text-charcoal-blue hover:text-charcoal-blue'
-              }`}
-            >
-              <FontAwesomeIcon icon={faSyringe} className="fa-1x" />
-              Medication
-            </Link>
-            <Link
-              href="/chatbot"
-              className={`transition-colors flex items-center gap-2 ${
-                isActive('/chatbot')
-                  ? 'text-charcoal-blue border-b-2 border-charcoal-blue pb-1'
-                  : 'text-charcoal-blue hover:text-charcoal-blue'
-              }`}
-            >
-              <FontAwesomeIcon icon={faRobot} className="fa-1x" />
-              AI Assistant
-            </Link>
           </div>
 
           <div className="flex items-center gap-3">
@@ -277,72 +218,6 @@ export default function Navbar() {
             </div>
           </div>
         </div>
-
-        {/* Mobile Nav Links */}
-        {isMobileMenuOpen && (
-          <div id="mobile-nav" className="md:hidden flex flex-col gap-3 pb-4 border-t border-rosy-granite/30 mt-4 pt-4">
-            <Link
-              href="/dashboard"
-              className={`transition-colors text-sm flex items-center gap-2 ${
-                isActive('/dashboard')
-                  ? 'text-charcoal-blue font-semibold'
-                  : 'text-charcoal-blue hover:text-charcoal-blue'
-              }`}
-              onClick={handleMobileNavClose}
-            >
-              <FontAwesomeIcon icon={faHouse} className="fa-1x" />
-              Dashboard
-            </Link>
-            <Link
-              href="/digital-pharmacy"
-              className={`transition-colors text-sm flex items-center gap-2 ${
-                isActive('/digital-pharmacy')
-                  ? 'text-charcoal-blue font-semibold'
-                  : 'text-charcoal-blue hover:text-charcoal-blue'
-              }`}
-              onClick={handleMobileNavClose}
-            >
-              <FontAwesomeIcon icon={faCapsules} className="fa-1x" />
-              Digital Pharmacy
-            </Link>
-            <Link
-              href="/hospitals"
-              className={`transition-colors text-sm flex items-center gap-2 ${
-                isActive('/hospitals')
-                  ? 'text-charcoal-blue font-semibold'
-                  : 'text-charcoal-blue hover:text-charcoal-blue'
-              }`}
-              onClick={handleMobileNavClose}
-            >
-              <FontAwesomeIcon icon={faHospital} className="fa-1x" />
-              Hospitals
-            </Link>
-            <Link
-              href="/medication"
-              className={`transition-colors text-sm flex items-center gap-2 ${
-                isActive('/medication')
-                  ? 'text-charcoal-blue font-semibold'
-                  : 'text-charcoal-blue hover:text-charcoal-blue'
-              }`}
-              onClick={handleMobileNavClose}
-            >
-              <FontAwesomeIcon icon={faSyringe} className="fa-1x" />
-              Medication
-            </Link>
-            <Link
-              href="/chatbot"
-              className={`transition-colors text-sm flex items-center gap-2 ${
-                isActive('/chatbot')
-                  ? 'text-charcoal-blue font-semibold'
-                  : 'text-charcoal-blue hover:text-charcoal-blue'
-              }`}
-              onClick={handleMobileNavClose}
-            >
-              <FontAwesomeIcon icon={faRobot} className="fa-1x" />
-              AI Assistant
-            </Link>
-          </div>
-        )}
       </div>
     </nav>
   );

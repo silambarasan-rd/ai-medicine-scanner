@@ -3,7 +3,7 @@ import { config } from "@fortawesome/fontawesome-svg-core";
 import "./globals.css";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import ServiceWorkerRegistrar from "./components/ServiceWorkerRegistrar";
-import Navbar from "./components/Navbar";
+import AppLayoutWrapper from "./components/AppLayoutWrapper";
 import ToastProvider from "./components/ToastProvider";
 import TooltipProvider from "./components/TooltipProvider";
 
@@ -47,8 +47,9 @@ export default function RootLayout({
         <meta property="og:url" content="https://mathirai.netlify.app/" />
       </head>
       <body className="antialiased">
-        <Navbar />
-        {children}
+        <AppLayoutWrapper>
+          {children}
+        </AppLayoutWrapper>
         <ToastProvider />
         <TooltipProvider />
         <ServiceWorkerRegistrar />
