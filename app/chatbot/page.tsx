@@ -166,12 +166,15 @@ export default function ChatbotPage() {
           description: result.actionProposed.description
         });
       } else {
-        // For read-only operations or simple responses, just save and display the response
-        assistantMessage = await saveChatMessage(userId, sessionId, 'assistant', result.response);
-        // Attach results to message if available
-        if (result.results) {
-          (assistantMessage as MessageWithResults).results = result.results;
-        }
+        // For read-only operations or simple responses, save with results
+        assistantMessage = await saveChatMessage(
+          userId, 
+          sessionId, 
+          'assistant', 
+          result.response,
+          undefined, // no actionProposed for read-only operations
+          result.results // save results to database for persistence
+        );
       }
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -217,12 +220,14 @@ export default function ChatbotPage() {
         )
       );
 
-      // Save confirmation response
+      // Save confirmation response with collapsible payload
       const confirmationMessage = await saveChatMessage(
         userId,
         sessionId,
         'assistant',
-        `✓ Action completed successfully! ${confirmingAction.tool} has been executed.`
+        `✓ Action completed successfully! ${confirmingAction.tool} has been executed.`,
+        undefined,
+        { payload: confirmingAction.params, tool: confirmingAction.tool }
       );
       setMessages(prev => [...prev, confirmationMessage]);
 
@@ -391,11 +396,20 @@ export default function ChatbotPage() {
                 </div>
               )}
 
-              {/* Show action if confirmed */}
-              {msg.actionConfirmed && msg.actionResult && (
-                <div className={styles.actionResult}>
-                  <strong>✓ Executed:</strong> {msg.actionProposed?.tool}
-                </div>
+              {/* Show action payload if this is a confirmation message */}
+              {msg.actionResult && typeof msg.actionResult === 'object' && 'payload' in msg.actionResult && (
+                <details className={styles.payloadDetails}>
+                  <summary>View action details</summary>
+                  <div className={styles.payloadContent}>
+                    <div className={styles.payloadTool}>
+                      <strong>Tool:</strong> {String((msg.actionResult as { tool?: string }).tool || '')}
+                    </div>
+                    <div className={styles.payloadParams}>
+                      <strong>Parameters:</strong>
+                      <pre>{JSON.stringify((msg.actionResult as { payload?: unknown }).payload, null, 2)}</pre>
+                    </div>
+                  </div>
+                </details>
               )}
             </div>
           </div>

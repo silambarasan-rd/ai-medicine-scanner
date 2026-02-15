@@ -98,7 +98,8 @@ export async function saveChatMessage(
   sessionId: string,
   role: "user" | "assistant",
   content: string,
-  actionProposed?: Record<string, unknown>
+  actionProposed?: Record<string, unknown>,
+  actionResult?: Record<string, unknown>
 ): Promise<ChatMessage> {
   const supabase = createSupabaseClient();
 
@@ -113,6 +114,7 @@ export async function saveChatMessage(
       role,
       content,
       action_proposed: actionProposed || null,
+      action_result: actionResult || null,
       created_at: new Date().toISOString()
     })
     .select()
@@ -123,7 +125,7 @@ export async function saveChatMessage(
     throw error;
   }
 
-  return {
+  const message: ChatMessage & { results?: Record<string, unknown> } = {
     id: data.id,
     role: data.role,
     content: data.content,
@@ -132,6 +134,13 @@ export async function saveChatMessage(
     actionResult: data.action_result,
     createdAt: data.created_at
   };
+  
+  // Map actionResult to results for immediate display
+  if (data.action_result) {
+    message.results = data.action_result;
+  }
+  
+  return message;
 }
 
 /**
@@ -155,15 +164,24 @@ export async function loadChatHistory(
     return [];
   }
 
-  return (data || []).map(msg => ({
-    id: msg.id,
-    role: msg.role,
-    content: msg.content,
-    actionProposed: msg.action_proposed,
-    actionConfirmed: msg.action_confirmed,
-    actionResult: msg.action_result,
-    createdAt: msg.created_at
-  }));
+  return (data || []).map(msg => {
+    const message: ChatMessage & { results?: Record<string, unknown> } = {
+      id: msg.id,
+      role: msg.role,
+      content: msg.content,
+      actionProposed: msg.action_proposed,
+      actionConfirmed: msg.action_confirmed,
+      actionResult: msg.action_result,
+      createdAt: msg.created_at
+    };
+    
+    // Map actionResult to results for display in ChatResultsCard
+    if (msg.action_result) {
+      message.results = msg.action_result;
+    }
+    
+    return message;
+  });
 }
 
 /**

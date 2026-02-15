@@ -379,6 +379,65 @@
   cursor: not-allowed;
 }
 
+/* Payload details (for completed actions) */
+.payloadDetails {
+  margin: 1rem 0 0 0;
+  padding: 0.75rem;
+  background: #f0f4ff;
+  border-radius: 6px;
+  border: 1px solid #d0d8ff;
+}
+
+.payloadDetails summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #667eea;
+  user-select: none;
+  font-weight: 500;
+}
+
+.payloadDetails summary:hover {
+  color: #5568d3;
+}
+
+.payloadContent {
+  margin-top: 0.75rem;
+}
+
+.payloadTool {
+  padding: 0.5rem 0.75rem;
+  background: white;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.payloadParams {
+  padding: 0.5rem 0.75rem;
+  background: white;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.payloadParams strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.payloadParams pre {
+  margin: 0;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 0.8rem;
+  border: 1px solid #e0e0e0;
+  line-height: 1.4;
+  color: #333;
+}
+
 /* Input Form */
 .inputForm {
   display: flex;
