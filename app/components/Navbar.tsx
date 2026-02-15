@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { createClient } from '../utils/supabase/client';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faBell, faBellSlash, faCapsules, faChevronDown, faHouse, faSyringe, faUser, faSignOutAlt, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faBell, faBellSlash, faCapsules, faChevronDown, faHouse, faHospital, faSyringe, faUser, faSignOutAlt, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { checkNotificationStatus, subscribeToPushNotifications, unsubscribeFromPushNotifications } from '../utils/pushNotifications';
 
 interface UserProfile {
@@ -180,6 +180,17 @@ export default function Navbar() {
               Digital Pharmacy
             </Link>
             <Link
+              href="/hospitals"
+              className={`transition-colors flex items-center gap-2 ${
+                isActive('/hospitals')
+                  ? 'text-charcoal-blue border-b-2 border-charcoal-blue pb-1'
+                  : 'text-charcoal-blue hover:text-charcoal-blue'
+              }`}
+            >
+              <FontAwesomeIcon icon={faHospital} className="fa-1x" />
+              Hospitals
+            </Link>
+            <Link
               href="/medication"
               className={`transition-colors flex items-center gap-2 ${
                 isActive('/medication')
@@ -282,6 +293,18 @@ export default function Navbar() {
             >
               <FontAwesomeIcon icon={faCapsules} className="fa-1x" />
               Digital Pharmacy
+            </Link>
+            <Link
+              href="/hospitals"
+              className={`transition-colors text-sm flex items-center gap-2 ${
+                isActive('/hospitals')
+                  ? 'text-charcoal-blue font-semibold'
+                  : 'text-charcoal-blue hover:text-charcoal-blue'
+              }`}
+              onClick={handleMobileNavClose}
+            >
+              <FontAwesomeIcon icon={faHospital} className="fa-1x" />
+              Hospitals
             </Link>
             <Link
               href="/medication"
