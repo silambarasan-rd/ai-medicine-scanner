@@ -1,3 +1,52 @@
+.dashboardContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.pageHeader {
+  margin-bottom: 1.5rem;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 2rem;
+  color: #0f172a;
+}
+
+.pageSubtitle {
+  margin: 0.4rem 0 0;
+  color: #64748b;
+}
+
+.topRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+.bottomRow {
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 1023px) {
+  .topRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboardContainer {
+    padding: 1.5rem 1rem 2.5rem;
+  }
+
+  .pageTitle {
+    font-size: 1.6rem;
+  }
+}
+
+/* Calendar styles used by /calendar page */
 .calendarContainer :global(.fc) {
   font-family: inherit;
   width: 100%;

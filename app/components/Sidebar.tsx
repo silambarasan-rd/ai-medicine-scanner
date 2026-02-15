@@ -48,7 +48,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const isActive = (href: string) => pathname === href;
   const isParentActive = (paths: string[]) => paths.some(path => pathname.startsWith(path));
 
-  const medicationPaths = ['/medication', '/add-medicine'];
+  const medicationPaths = ['/medication', '/add-medicine', '/calendar'];
   const pharmacyPaths = ['/digital-pharmacy'];
 
   const handleLinkClick = () => {
@@ -138,8 +138,8 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   <span>Add Medication</span>
                 </Link>
                 <Link
-                  href="/dashboard"
-                  className={`${styles.submenuItem} ${isActive('/dashboard') ? styles.active : ''}`}
+                  href="/calendar"
+                  className={`${styles.submenuItem} ${isActive('/calendar') ? styles.active : ''}`}
                   onClick={handleLinkClick}
                 >
                   <FontAwesomeIcon icon={faCalendar} className={styles.submenuIcon} />

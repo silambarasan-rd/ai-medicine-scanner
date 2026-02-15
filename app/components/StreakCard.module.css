@@ -1,0 +1,147 @@
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 1.5rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kicker {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #6b7280;
+  margin: 0 0 0.35rem;
+}
+
+.streakValue {
+  font-size: 2.5rem;
+  margin: 0;
+  color: #0f172a;
+}
+
+.bestValue {
+  margin: 0.35rem 0 0;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.milestones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.milestoneRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.milestoneHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.milestoneValue {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.progressTrack {
+  background: #e5e7eb;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.tierBronze {
+  background: #cd7f32;
+}
+
+.tierSilver {
+  background: #c0c0c0;
+}
+
+.tierGold {
+  background: #ffd700;
+}
+
+.tierPlatinum {
+  background: #e5e4e2;
+}
+
+.tierDiamond {
+  background: #b9f2ff;
+}
+
+.tierCrown {
+  background: #fdb931;
+}
+
+.completionRate {
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.skeletonHeader,
+.skeletonBar {
+  background: linear-gradient(90deg, #f1f5f9, #e2e8f0, #f1f5f9);
+  border-radius: 999px;
+  animation: pulse 1.6s infinite;
+}
+
+.skeletonHeader {
+  height: 28px;
+  width: 60%;
+}
+
+.skeletonBar {
+  height: 10px;
+  width: 100%;
+}
+
+.error {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.retryButton {
+  border: none;
+  background: #111827;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
