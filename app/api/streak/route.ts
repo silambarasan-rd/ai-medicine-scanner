@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
         currentStreak++;
         checkDate.setDate(checkDate.getDate() - 1);
       } else {
-        // Streak breaks if medicines were not taken or no medicines scheduled
+        // Streak breaks if not all medicines were taken or no medicines scheduled
         break;
       }
     }
