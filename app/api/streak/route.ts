@@ -98,14 +98,8 @@ export async function GET(request: NextRequest) {
         currentStreak++;
         checkDate.setDate(checkDate.getDate() - 1);
       } else {
-        // Check if there were any medicines scheduled for this date
-        const scheduledMedicines = getMedicinesForDate(checkDate);
-        if (scheduledMedicines.length > 0) {
-          // There were medicines but not all taken, streak breaks
-          break;
-        }
-        // No medicines scheduled, continue checking
-        checkDate.setDate(checkDate.getDate() - 1);
+        // Streak breaks if medicines were not taken or no medicines scheduled
+        break;
       }
     }
 
@@ -121,10 +115,8 @@ export async function GET(request: NextRequest) {
         tempStreak++;
         bestStreak = Math.max(bestStreak, tempStreak);
       } else {
-        const scheduledMedicines = getMedicinesForDate(checkDate);
-        if (scheduledMedicines.length > 0) {
-          tempStreak = 0;
-        }
+        // Reset streak counter when day is incomplete or no medicines scheduled
+        tempStreak = 0;
       }
       checkDate.setDate(checkDate.getDate() - 1);
     }
