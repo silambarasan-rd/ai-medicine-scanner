@@ -25,6 +25,8 @@ export interface ChatSession {
   messages: ChatMessage[];
   createdAt: string;
   updatedAt: string;
+  preview?: string;
+  messageCount?: number;
 }
 
 /**
@@ -317,14 +319,14 @@ export function createNewSession(): string {
 }
 
 /**
- * Load all sessions for a user (optional, for future session history UI)
+ * Load all sessions for a user with preview and message count
  */
 export async function loadUserSessions(userId: string): Promise<ChatSession[]> {
   const supabase = createSupabaseClient();
 
   const { data, error } = await supabase
     .from("chat_messages")
-    .select("session_id, created_at, updated_at")
+    .select("session_id, content, role, created_at")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
@@ -333,19 +335,38 @@ export async function loadUserSessions(userId: string): Promise<ChatSession[]> {
     return [];
   }
 
-  // Group by session_id
+  // Group by session_id and get preview (first user message)
   const sessionsMap = new Map<string, ChatSession>();
 
   (data || []).forEach(msg => {
     if (!sessionsMap.has(msg.session_id)) {
+      // Get first user message as preview
+      const firstUserMsg = (data || []).find(
+        m => m.session_id === msg.session_id && m.role === 'user'
+      );
+      const preview = firstUserMsg?.content.slice(0, 50) || 'New chat';
+      
       sessionsMap.set(msg.session_id, {
         id: msg.session_id,
         messages: [],
         createdAt: msg.created_at,
-        updatedAt: msg.updated_at
+        updatedAt: msg.created_at,
+        preview,
+        messageCount: 0
       });
+    }
+    
+    // Count messages
+    const session = sessionsMap.get(msg.session_id)!;
+    session.messageCount = (session.messageCount || 0) + 1;
+    
+    // Update most recent timestamp
+    if (msg.created_at > session.updatedAt) {
+      session.updatedAt = msg.created_at;
     }
   });
 
-  return Array.from(sessionsMap.values());
+  return Array.from(sessionsMap.values()).sort((a, b) => 
+    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  );
 }

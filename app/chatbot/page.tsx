@@ -8,7 +8,9 @@ import {
   loadChatHistory,
   updateMessageWithActionResult,
   ChatMessage,
+  ChatSession,
   createNewSession,
+  loadUserSessions,
   executeTool
 } from '@/app/lib/chatbot-engine';
 import { findTool } from '@/app/lib/mcp-tools';
@@ -34,13 +36,15 @@ export default function ChatbotPage() {
   const [loading, setLoading] = useState(false);
   const [sessionId, setSessionId] = useState('');
   const [userId, setUserId] = useState('');
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [showSidebar, setShowSidebar] = useState(true);
   const [confirmingAction, setConfirmingAction] = useState<ConfirmationAction | null>(null);
   const [executingAction, setExecutingAction] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize session and load history
+  // Initialize user and load sessions
   useEffect(() => {
-    const initSession = async () => {
+    const initUser = async () => {
       try {
         // Get current user
         const userResponse = await fetch('/api/profile');
@@ -52,26 +56,74 @@ export default function ChatbotPage() {
         const userData = await userResponse.json();
         setUserId(userData.id);
 
-        // Create or load session
-        const newSessionId = createNewSession();
-        setSessionId(newSessionId);
+        // Load all sessions
+        const userSessions = await loadUserSessions(userData.id);
+        setSessions(userSessions);
 
-        // Load chat history
-        const history = await loadChatHistory(userData.id, newSessionId);
-        setMessages(history);
+        // Start with most recent session or create new one
+        if (userSessions.length > 0) {
+          const mostRecent = userSessions[0];
+          setSessionId(mostRecent.id);
+          const history = await loadChatHistory(userData.id, mostRecent.id);
+          setMessages(history);
+        } else {
+          // No sessions exist, create new one
+          const newSessionId = createNewSession();
+          setSessionId(newSessionId);
+          setMessages([]);
+        }
       } catch (error) {
-        console.error('Error initializing session:', error);
+        console.error('Error initializing user:', error);
         router.push('/login');
       }
     };
 
-    initSession();
+    initUser();
   }, [router]);
 
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  /**
+   * Create a new chat session
+   */
+  const handleNewChat = () => {
+    const newSessionId = createNewSession();
+    setSessionId(newSessionId);
+    setMessages([]);
+    setInput('');
+  };
+
+  /**
+   * Switch to an existing session
+   */
+  const handleSwitchSession = async (session: ChatSession) => {
+    if (session.id === sessionId) return; // Already on this session
+    
+    setSessionId(session.id);
+    setMessages([]);
+    setLoading(true);
+    
+    try {
+      const history = await loadChatHistory(userId, session.id);
+      setMessages(history);
+    } catch (error) {
+      console.error('Error loading session:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Refresh sessions list (call after sending message)
+   */
+  const refreshSessions = async () => {
+    if (!userId) return;
+    const userSessions = await loadUserSessions(userId);
+    setSessions(userSessions);
+  };
 
   /**
    * Handle user sending a message
@@ -123,6 +175,9 @@ export default function ChatbotPage() {
       }
 
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Refresh sessions list to update preview
+      await refreshSessions();
     } catch (error) {
       console.error('Error sending message:', error);
       
@@ -218,11 +273,62 @@ export default function ChatbotPage() {
 
   return (
     <div className={styles.container}>
-      {/* Header */}
-      <div className={styles.header}>
-        <h1>AI Medicine Assistant</h1>
-        <p>Ask me to manage your medicines, pharmacy inventory, or find hospitals</p>
+      {/* Sidebar */}
+      <div className={`${styles.sidebar} ${showSidebar ? styles.sidebarOpen : ''}`}>
+        <div className={styles.sidebarHeader}>
+          <h2>Chat History</h2>
+          <button 
+            className={styles.toggleBtn}
+            onClick={() => setShowSidebar(!showSidebar)}
+            title={showSidebar ? 'Hide sidebar' : 'Show sidebar'}
+          >
+            {showSidebar ? '◀' : '▶'}
+          </button>
+        </div>
+        
+        <button className={styles.newChatBtn} onClick={handleNewChat}>
+          + New Chat
+        </button>
+        
+        <div className={styles.sessionsList}>
+          {sessions.map((session) => (
+            <div
+              key={session.id}
+              className={`${styles.sessionItem} ${session.id === sessionId ? styles.sessionActive : ''}`}
+              onClick={() => handleSwitchSession(session)}
+            >
+              <div className={styles.sessionPreview}>
+                {session.preview || 'New chat'}
+              </div>
+              <div className={styles.sessionMeta}>
+                {session.messageCount || 0} messages • {new Date(session.updatedAt).toLocaleDateString()}
+              </div>
+            </div>
+          ))}
+          {sessions.length === 0 && (
+            <div className={styles.noSessions}>No chat history yet</div>
+          )}
+        </div>
       </div>
+
+      {/* Main Chat Area */}
+      <div className={styles.mainContent}>
+        {/* Header */}
+        <div className={styles.header}>
+          {!showSidebar && (
+            <button 
+              className={styles.menuBtn}
+              onClick={() => setShowSidebar(true)}
+              title="Show chat history"
+            >
+              ☰
+            </button>
+          )}
+          <div>
+            <h1>AI Medicine Assistant</h1>
+            <p>Ask me to manage your medicines, pharmacy inventory, or find hospitals</p>
+          </div>
+        </div>
 
       {/* Chat Messages */}
       <div className={styles.messagesContainer}>
@@ -316,6 +422,7 @@ export default function ChatbotPage() {
           {loading ? 'Thinking...' : 'Send'}
         </button>
       </form>
+      </div>
     </div>
   );
 }
