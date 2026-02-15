@@ -13,6 +13,7 @@ import {
 } from '@/app/lib/chatbot-engine';
 import { findTool } from '@/app/lib/mcp-tools';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
+import ChatResultsCard from '@/app/components/ChatResultsCard';
 import styles from './page.module.css';
 
 interface ConfirmationAction {
@@ -20,6 +21,10 @@ interface ConfirmationAction {
   tool: string;
   params: Record<string, unknown>;
   description: string;
+}
+
+interface MessageWithResults extends ChatMessage {
+  results?: Record<string, unknown>;
 }
 
 export default function ChatbotPage() {
@@ -111,6 +116,10 @@ export default function ChatbotPage() {
       } else {
         // For read-only operations or simple responses, just save and display the response
         assistantMessage = await saveChatMessage(userId, sessionId, 'assistant', result.response);
+        // Attach results to message if available
+        if (result.results) {
+          (assistantMessage as MessageWithResults).results = result.results;
+        }
       }
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -235,6 +244,16 @@ export default function ChatbotPage() {
           <div key={msg.id || idx} className={`${styles.message} ${styles[msg.role]}`}>
             <div className={styles.messageContent}>
               <div className={styles.messageText}>{msg.content}</div>
+
+              {/* Show results cards if available */}
+              {(msg as MessageWithResults).results && (
+                <ChatResultsCard
+                  type={(msg as MessageWithResults).results?.type as string}
+                  items={((msg as MessageWithResults).results?.items || []) as Array<Record<string, unknown>>}
+                  total={(msg as MessageWithResults).results?.total as number}
+                  viewAllUrl={(msg as MessageWithResults).results?.viewAllUrl as string | undefined}
+                />
+              )}
 
               {/* Show action if confirmed */}
               {msg.actionConfirmed && msg.actionResult && (

@@ -284,41 +284,95 @@ export async function POST(req: NextRequest) {
         break;
     }
 
-    // If the AI proposed a read-only action, execute it and include results in response
+    // If the AI proposed a read-only action, check parameters and execute
     if (result.actionProposed && !result.actionProposed.requiresConfirmation) {
+      const tool = findTool(result.actionProposed.tool);
+      const params = result.actionProposed.params;
+
+      // Check for missing required parameters that can be asked from user
+      let missingParam = '';
+      if (result.actionProposed.tool === 'list_hospitals' && !params.district && !params.speciality) {
+        missingParam = 'district';
+      }
+
+      if (missingParam) {
+        // Ask user for the missing parameter
+        return NextResponse.json({
+          response: `I'd like to help you find hospitals, but I need to know which district you're interested in. Could you please tell me the district name?`,
+          actionProposed: null,
+          sessionId,
+          askingForParameter: missingParam
+        });
+      }
+
       try {
-        const toolResult = await executeTool(result.actionProposed.tool, result.actionProposed.params, supabase);
+        const toolResult = await executeTool(result.actionProposed.tool, params, supabase);
         
-        // Format the result into a human-readable response
-        let formattedResult = '';
+        // Build results response with structured data
+        let resultData: Record<string, unknown> = {};
+        let itemsToDisplay: Array<Record<string, unknown>> = [];
+        let total = 0;
+        let viewAllUrl = '';
+        const ITEMS_LIMIT = 15;
+
         if (result.actionProposed.tool === 'list_hospitals') {
           const hospitals = (toolResult as Record<string, unknown>).hospitals as Array<Record<string, unknown>> || [];
-          formattedResult = `Found ${hospitals.length} hospitals:\n\n${hospitals
-            .map((h: Record<string, unknown>) => `• ${h.name} (${h.district})\n  Phone: ${h.phone || 'N/A'}\n  Specialty: ${h.speciality || 'General'}`)
-            .join('\n\n')}`;
+          total = hospitals.length;
+          itemsToDisplay = hospitals.slice(0, ITEMS_LIMIT);
+          
+          const urlParams = new URLSearchParams();
+          if (params.district) urlParams.append('district', String(params.district));
+          if (params.speciality) urlParams.append('speciality', String(params.speciality));
+          viewAllUrl = `/hospitals${urlParams.toString() ? `?${urlParams.toString()}` : ''}`;
+          
+          resultData = {
+            type: 'hospitals',
+            items: itemsToDisplay,
+            total,
+            viewAllUrl
+          };
         } else if (result.actionProposed.tool === 'list_medicines') {
           const medicines = (toolResult as Record<string, unknown>).medicines as Array<Record<string, unknown>> || [];
-          formattedResult = `You have ${medicines.length} scheduled medicines:\n\n${medicines
-            .map((m: Record<string, unknown>) => `• ${m.name} - ${m.dosage} (${m.occurrence})`)
-            .join('\n')}`;
+          total = medicines.length;
+          itemsToDisplay = medicines.slice(0, ITEMS_LIMIT);
+          
+          resultData = {
+            type: 'medicines',
+            items: itemsToDisplay,
+            total
+          };
         } else if (result.actionProposed.tool === 'list_pharmacy_medicines') {
           const medicines = (toolResult as Record<string, unknown>).medicines as Array<Record<string, unknown>> || [];
-          formattedResult = `Your pharmacy inventory has ${medicines.length} items:\n\n${medicines
-            .map((m: Record<string, unknown>) => `• ${m.name} - ${m.quantity} ${m.unit}`)
-            .join('\n')}`;
+          total = medicines.length;
+          itemsToDisplay = medicines.slice(0, ITEMS_LIMIT);
+          
+          resultData = {
+            type: 'pharmacy_medicines',
+            items: itemsToDisplay,
+            total,
+            viewAllUrl: '/digital-pharmacy'
+          };
         } else if (result.actionProposed.tool === 'list_confirmations') {
           const confirmations = (toolResult as Record<string, unknown>).confirmations as Array<Record<string, unknown>> || [];
-          formattedResult = `Recent confirmations:\n\n${confirmations
-            .map((c: Record<string, unknown>) => `• ${c.date_take}: ${c.status}`)
-            .join('\n')}`;
+          total = confirmations.length;
+          itemsToDisplay = confirmations.slice(0, ITEMS_LIMIT);
+          
+          resultData = {
+            type: 'confirmations',
+            items: itemsToDisplay,
+            total
+          };
         } else {
-          formattedResult = JSON.stringify(toolResult, null, 2);
+          resultData = toolResult;
         }
 
+        const response = `Found ${total} results${total > ITEMS_LIMIT ? ` (showing first ${ITEMS_LIMIT})` : ''}`;
+
         return NextResponse.json({
-          response: formattedResult,
-          actionProposed: null, // Don't propose action again after execution
+          response,
+          actionProposed: null,
           sessionId,
+          results: resultData,
           toolExecuted: true
         });
       } catch (error) {

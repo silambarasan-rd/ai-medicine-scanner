@@ -42,6 +42,7 @@ export async function executeChatQuery(
     description: string;
     requiresConfirmation: boolean;
   };
+  results?: Record<string, unknown>;
 }> {
   try {
     // Build context from tool definitions
@@ -78,7 +79,8 @@ export async function executeChatQuery(
 
     return {
       response: data.response,
-      actionProposed: data.actionProposed
+      actionProposed: data.actionProposed,
+      results: data.results
     };
   } catch (error) {
     console.error("Error executing chat query:", error);
