@@ -18,7 +18,7 @@ import styles from './page.module.css';
 interface ConfirmationAction {
   messageId: string;
   tool: string;
-  params: Record<string, any>;
+  params: Record<string, unknown>;
   description: string;
 }
 
@@ -222,11 +222,11 @@ export default function ChatbotPage() {
             <h2>Welcome to your AI Assistant! 👋</h2>
             <p>Try asking:</p>
             <ul>
-              <li>"Add aspirin 500mg twice daily"</li>
-              <li>"List my scheduled medicines"</li>
-              <li>"Add medicine to my pharmacy with 10 bottles in stock"</li>
-              <li>"Show hospitals in my district"</li>
-              <li>"Record that I took my medicine today"</li>
+              <li>Add aspirin 500mg twice daily</li>
+              <li>List my scheduled medicines</li>
+              <li>Add medicine to my pharmacy with 10 bottles in stock</li>
+              <li>Show hospitals in my district</li>
+              <li>Record that I took my medicine today</li>
             </ul>
           </div>
         )}

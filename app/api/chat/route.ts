@@ -11,7 +11,7 @@ const AI_PROVIDER = process.env.AI_PROVIDER || "gemini";
 interface ToolDefinition {
   name: string;
   description: string;
-  params: Record<string, any>;
+  params: Record<string, unknown>;
   required: string[];
 }
 
@@ -24,7 +24,7 @@ interface ChatRequest {
 
 interface ProposedAction {
   tool: string;
-  params: Record<string, any>;
+  params: Record<string, unknown>;
   description: string;
   requiresConfirmation: boolean;
 }
@@ -49,7 +49,7 @@ function getOpenAIClient() {
 function buildSystemPrompt(tools: ToolDefinition[]): string {
   const toolDescriptions = tools.map(tool => {
     const paramsStr = Object.entries(tool.params)
-      .map(([key, value]: [string, any]) => `  - ${key}: ${value.description || ''}`)
+      .map(([key, value]: [string, unknown]) => `  - ${key}: ${typeof value === 'object' && value !== null && 'description' in value ? (value as Record<string, unknown>).description : ''}`)
       .join('\n');
     
     return `

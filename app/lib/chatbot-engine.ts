@@ -11,12 +11,12 @@ export interface ChatMessage {
   content: string;
   actionProposed?: {
     tool: string;
-    params: Record<string, any>;
+    params: Record<string, unknown>;
     description: string;
     requiresConfirmation: boolean;
   };
   actionConfirmed?: boolean;
-  actionResult?: any;
+  actionResult?: Record<string, unknown>;
   createdAt: string;
 }
 
@@ -38,7 +38,7 @@ export async function executeChatQuery(
   response: string;
   actionProposed?: {
     tool: string;
-    params: Record<string, any>;
+    params: Record<string, unknown>;
     description: string;
     requiresConfirmation: boolean;
   };
@@ -94,7 +94,7 @@ export async function saveChatMessage(
   sessionId: string,
   role: "user" | "assistant",
   content: string,
-  actionProposed?: any
+  actionProposed?: Record<string, unknown>
 ): Promise<ChatMessage> {
   const supabase = createSupabaseClient();
 
@@ -168,7 +168,7 @@ export async function loadChatHistory(
 export async function updateMessageWithActionResult(
   messageId: string,
   actionConfirmed: boolean,
-  actionResult?: any
+  actionResult?: Record<string, unknown>
 ): Promise<void> {
   const supabase = createSupabaseClient();
 
@@ -193,8 +193,8 @@ export async function updateMessageWithActionResult(
  */
 export async function executeTool(
   toolName: string,
-  params: Record<string, any>
-): Promise<any> {
+  params: Record<string, unknown>
+): Promise<Record<string, unknown>> {
   const tool = findTool(toolName);
   if (!tool) {
     throw new Error(`Unknown tool: ${toolName}`);
@@ -272,8 +272,8 @@ export async function executeTool(
 async function callApi(
   method: string,
   endpoint: string,
-  body?: any
-): Promise<any> {
+  body?: Record<string, unknown>
+): Promise<Record<string, unknown>> {
   const options: RequestInit = {
     method,
     headers: { "Content-Type": "application/json" }
