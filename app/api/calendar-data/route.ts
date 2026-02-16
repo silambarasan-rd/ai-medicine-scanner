@@ -93,11 +93,18 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Count how many were taken
+      // Count how many were taken and skipped
       const taken = confirmations?.filter(conf => {
         const confDate = new Date(conf.scheduled_datetime).toISOString().split('T')[0];
         return confDate === dateStr && 
                conf.taken === true && 
+               scheduledMedicineIds.includes(conf.medicine_id);
+      }).length || 0;
+
+      const skipped = confirmations?.filter(conf => {
+        const confDate = new Date(conf.scheduled_datetime).toISOString().split('T')[0];
+        return confDate === dateStr && 
+               conf.taken === false && 
                scheduledMedicineIds.includes(conf.medicine_id);
       }).length || 0;
 
@@ -116,6 +123,7 @@ export async function GET(request: NextRequest) {
         date: dateStr,
         total,
         taken,
+        skipped,
         percentage,
         status
       });

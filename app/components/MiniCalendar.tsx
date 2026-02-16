@@ -3,12 +3,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import { Tooltip } from 'react-tooltip';
+import 'react-tooltip/dist/react-tooltip.css';
 import styles from './MiniCalendar.module.css';
 
 type CalendarDay = {
   date: string;
   total: number;
   taken: number;
+  skipped: number;
   percentage: number;
   status: 'complete' | 'partial' | 'none';
 };
@@ -64,12 +67,8 @@ export default function MiniCalendar() {
       <Calendar
         className={styles.calendar}
         activeStartDate={activeStartDate}
-        onActiveStartDateChange={({ activeStartDate: nextStartDate }) => {
-          if (nextStartDate) {
-            setActiveStartDate(nextStartDate);
-          }
-        }}
-        tileDisabled={({ date, view }) => view === 'month' && date > new Date()}
+        showNavigation={true}
+        tileDisabled={() => false}
         tileClassName={({ date, view }) => {
           if (view !== 'month') return null;
           const key = formatDateKey(date);
@@ -90,12 +89,28 @@ export default function MiniCalendar() {
           if (view !== 'month') return null;
           const key = formatDateKey(date);
           const day = dayMap.get(key);
-          const title = day
-            ? `${day.taken}/${day.total} taken`
-            : 'No medicines scheduled';
-          return <span className={styles.tileDot} title={title} />;
+          let title = 'No medicines scheduled';
+          if (day) {
+            const parts = [];
+            if (day.taken > 0) parts.push(`${day.taken} Taken`);
+            if (day.skipped > 0) parts.push(`${day.skipped} Skipped`);
+            const pending = day.total - day.taken - day.skipped;
+            if (pending > 0) parts.push(`${pending} Pending`);
+            title = parts.length > 0 ? parts.join(', ') : `${day.total} medicines`;
+          }
+          return (
+            <>
+              <span 
+                className={styles.tooltipOverlay} 
+                data-tooltip-id="custom-tooltip" 
+                data-tooltip-content={title}
+              />
+              <span className={styles.tileDot} />
+            </>
+          );
         }}
       />
+      <Tooltip id="custom-tooltip" delayShow={400} openOnClick={true} />
     </section>
   );
 }

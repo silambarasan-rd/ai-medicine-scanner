@@ -40,15 +40,15 @@
 }
 
 .complete {
-  background: #dcfce7;
+  background: #dcfce7 !important;
 }
 
 .partial {
-  background: #fef9c3;
+  background: #fef9c3 !important;
 }
 
 .none {
-  background: #f3f4f6;
+  background: #f3f4f6 !important;
 }
 
 .today {
@@ -59,7 +59,18 @@
   opacity: 0.5;
 }
 
+.tooltipOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
 .tileDot {
+  position: relative;
+  z-index: 2;
   display: block;
   width: 6px;
   height: 6px;
@@ -76,16 +87,20 @@
 
 .calendar :global(.react-calendar__navigation) {
   display: flex;
-  gap: 0.35rem;
-  margin-bottom: 0.5rem;
+  justify-content: center;
+  margin-bottom: 0.8rem;
 }
 
 .calendar :global(.react-calendar__navigation button) {
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  border-radius: 8px;
-  padding: 0.35rem 0.5rem;
+  display: none;
+}
+
+.calendar :global(.react-calendar__navigation__label) {
+  display: block !important;
+  font-weight: 600;
+  font-size: 1.5rem;
   color: #0f172a;
+  pointer-events: none;
 }
 
 .calendar :global(.react-calendar__month-view__weekdays) {
@@ -97,10 +112,22 @@
 .calendar :global(.react-calendar__tile) {
   padding: 0.6rem 0.25rem;
   border-radius: 10px;
+  cursor: default;
+}
+
+.calendar :global(.react-calendar__tile--active),
+.calendar :global(.react-calendar__tile--active:enabled:hover),
+.calendar :global(.react-calendar__tile--active:enabled:focus) {
+  color: #000 !important;
+  background: inherit !important;
+}
+
+.calendar :global(.react-calendar__tile:disabled) {
+  opacity: 1;
 }
 
 .calendar :global(.react-calendar__tile--now) {
-  background: transparent;
+  background: inherit;
 }
 
 @media (max-width: 768px) {
