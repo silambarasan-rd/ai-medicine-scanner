@@ -502,8 +502,8 @@
   .sidebar {
     position: fixed;
     left: 0;
-    top: 0;
-    bottom: 0;
+    top: 64px;
+    height: calc(100vh - 64px);
     z-index: 100;
   }
 
