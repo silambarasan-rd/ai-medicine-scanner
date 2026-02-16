@@ -341,20 +341,29 @@ export async function POST(req: NextRequest) {
       const tool = findTool(result.actionProposed.tool);
       const params = result.actionProposed.params;
 
-      // Check for missing required parameters that can be asked from user
-      let missingParam = '';
-      if (result.actionProposed.tool === 'list_hospitals' && !params.district && !params.speciality) {
-        missingParam = 'district';
-      }
-
-      if (missingParam) {
-        // Ask user for the missing parameter
-        return NextResponse.json({
-          response: `I'd like to help you find hospitals, but I need to know which district you're interested in. Could you please tell me the district name?`,
-          actionProposed: null,
-          sessionId,
-          askingForParameter: missingParam
+      // Generic parameter validation: Check for missing required parameters
+      if (tool) {
+        const requiredParams = tool.inputSchema?.required || [];
+        const missingParams = requiredParams.filter(param => {
+          const value = params[param];
+          return value === undefined || value === null || value === '';
         });
+
+        if (missingParams.length > 0) {
+          // Ask user for the first missing parameter
+          const missingParam = missingParams[0];
+          const paramDef = tool.inputSchema?.properties?.[missingParam];
+          const paramDescription = paramDef?.description || missingParam;
+          
+          // Generate a user-friendly message asking for the missing parameter
+          const toolName = tool.name.replace(/_/g, ' ');
+          return NextResponse.json({
+            response: `To ${toolName}, I need the following information: ${paramDescription}. Could you please provide it?`,
+            actionProposed: null,
+            sessionId,
+            askingForParameter: missingParam
+          });
+        }
       }
 
       try {
