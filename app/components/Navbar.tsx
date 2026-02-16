@@ -119,8 +119,8 @@ export default function Navbar({ sidebarOpen = true, onSidebarToggle }: NavbarPr
   const notificationLabel = notificationsEnabled ? 'Disable notifications' : 'Enable notifications';
   const sidebarToggleLabel = sidebarOpen ? 'Close sidebar' : 'Open sidebar';
 
-  // Don't show navbar on login page
-  if (pathname === '/login') {
+  // Don't show navbar on login page or before the router is ready
+  if (!pathname || pathname === '/login' || pathname.startsWith('/login/')) {
     return null;
   }
 

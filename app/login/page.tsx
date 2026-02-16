@@ -68,7 +68,7 @@ function LoginForm() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-rosy-granite via-blue-slate to-deep-space-blue flex items-center justify-center px-4 py-5">
+    <main className="min-h-[100dvh] bg-gradient-to-br from-rosy-granite via-blue-slate to-deep-space-blue flex items-center justify-center px-4 py-5">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8">
           {/* Logo and Title */}
