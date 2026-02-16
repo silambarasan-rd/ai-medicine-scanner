@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 
@@ -9,7 +10,14 @@ interface AppLayoutWrapperProps {
 }
 
 export default function AppLayoutWrapper({ children }: AppLayoutWrapperProps) {
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const isAuthRoute = !pathname || pathname.startsWith('/login') || pathname.startsWith('/auth');
+
+  if (isAuthRoute) {
+    return <>{children}</>;
+  }
 
   // Set initial sidebar state based on screen size
   useEffect(() => {
