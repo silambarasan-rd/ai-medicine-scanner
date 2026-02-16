@@ -81,8 +81,12 @@ export default function StreakCard() {
       <div className={styles.header}>
         <div>
           <p className={styles.kicker}>Current Streak</p>
-          <h3 className={styles.streakValue}>{data.currentStreak} days</h3>
-          <p className={styles.bestValue}>Best: {data.bestStreak} days</p>
+          <h3 className={styles.streakValue}>
+            {data.currentStreak} {data.currentStreak === 1 ? 'day' : 'days'}
+          </h3>
+          <p className={styles.bestValue}>
+            Best: {data.bestStreak} {data.bestStreak === 1 ? 'day' : 'days'}
+          </p>
         </div>
       </div>
 

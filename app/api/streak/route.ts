@@ -42,8 +42,9 @@ export async function GET(request: NextRequest) {
       medicines?.forEach(medicine => {
         if (!medicine.scheduled_date) return;
 
-        const scheduleDate = new Date(medicine.scheduled_date);
-        const scheduleDateStr = scheduleDate.toISOString().split('T')[0];
+        // Parse scheduled_date as UTC to avoid timezone issues
+        const scheduleDateStr = medicine.scheduled_date.split('T')[0];
+        const scheduleDate = new Date(scheduleDateStr + 'T00:00:00Z');
 
         // Check if medicine is scheduled for this date
         if (medicine.occurrence === 'once') {
@@ -51,7 +52,8 @@ export async function GET(request: NextRequest) {
             medicineIds.push(medicine.id);
           }
         } else if (medicine.occurrence === 'daily') {
-          if (scheduleDate <= date) {
+          // For daily medicines, check if the schedule date is on or before the target date
+          if (scheduleDateStr <= dateStr) {
             medicineIds.push(medicine.id);
           }
         } else if (medicine.occurrence === 'weekly') {
@@ -60,7 +62,9 @@ export async function GET(request: NextRequest) {
             medicineIds.push(medicine.id);
           }
         } else if (medicine.occurrence === 'monthly') {
-          if (scheduleDate.getDate() === date.getDate() && scheduleDate <= date) {
+          const scheduleDay = parseInt(scheduleDateStr.split('-')[2]);
+          const targetDay = parseInt(dateStr.split('-')[2]);
+          if (scheduleDay === targetDay && scheduleDateStr <= dateStr) {
             medicineIds.push(medicine.id);
           }
         }
@@ -70,35 +74,42 @@ export async function GET(request: NextRequest) {
     };
 
     // Helper function to check if all medicines for a date were taken
-    const isDateComplete = (date: Date): boolean => {
+    // Returns: 'complete' | 'incomplete' | 'no-medicines'
+    const getDateStatus = (date: Date): 'complete' | 'incomplete' | 'no-medicines' => {
       const dateStr = date.toISOString().split('T')[0];
       const scheduledMedicines = getMedicinesForDate(date);
 
-      if (scheduledMedicines.length === 0) return false;
+      if (scheduledMedicines.length === 0) return 'no-medicines';
 
       const takenMedicines = confirmations?.filter(conf => {
         const confDate = new Date(conf.scheduled_datetime).toISOString().split('T')[0];
         return confDate === dateStr && conf.taken === true && scheduledMedicines.includes(conf.medicine_id);
       });
 
-      return takenMedicines?.length === scheduledMedicines.length;
+      return takenMedicines?.length === scheduledMedicines.length ? 'complete' : 'incomplete';
     };
 
     // Calculate current streak
     let currentStreak = 0;
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+    const todayUTC = new Date(todayStr + 'T00:00:00Z');
 
     // Start from yesterday and count backwards
-    let checkDate = new Date(today);
-    checkDate.setDate(checkDate.getDate() - 1);
+    let checkDate = new Date(todayUTC);
+    checkDate.setUTCDate(checkDate.getUTCDate() - 1);
 
-    while (checkDate >= new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000)) {
-      if (isDateComplete(checkDate)) {
+    while (checkDate >= new Date(todayUTC.getTime() - 365 * 24 * 60 * 60 * 1000)) {
+      const status = getDateStatus(checkDate);
+      
+      if (status === 'complete') {
         currentStreak++;
-        checkDate.setDate(checkDate.getDate() - 1);
+        checkDate.setUTCDate(checkDate.getUTCDate() - 1);
+      } else if (status === 'no-medicines') {
+        // Skip days with no medicines - don't break the streak
+        checkDate.setUTCDate(checkDate.getUTCDate() - 1);
       } else {
-        // Streak breaks if not all medicines were taken or no medicines scheduled
+        // Streak breaks if medicines were scheduled but not all taken
         break;
       }
     }
@@ -106,19 +117,23 @@ export async function GET(request: NextRequest) {
     // Calculate best streak
     let bestStreak = currentStreak;
     let tempStreak = 0;
-    checkDate = new Date(today);
-    checkDate.setDate(checkDate.getDate() - 1);
+    checkDate = new Date(todayUTC);
+    checkDate.setUTCDate(checkDate.getUTCDate() - 1);
 
     // Check last 365 days for best streak
     for (let i = 0; i < 365; i++) {
-      if (isDateComplete(checkDate)) {
+      const status = getDateStatus(checkDate);
+      
+      if (status === 'complete') {
         tempStreak++;
         bestStreak = Math.max(bestStreak, tempStreak);
+      } else if (status === 'no-medicines') {
+        // Skip days with no medicines - don't reset the streak
       } else {
-        // Reset streak counter when day is incomplete or no medicines scheduled
+        // Reset streak counter when day is incomplete (had medicines but not all taken)
         tempStreak = 0;
       }
-      checkDate.setDate(checkDate.getDate() - 1);
+      checkDate.setUTCDate(checkDate.getUTCDate() - 1);
     }
 
     // Calculate milestones
