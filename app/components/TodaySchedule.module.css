@@ -1,0 +1,260 @@
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 1.5rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #0f172a;
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  color: #64748b;
+}
+
+.percentage {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.progressTrack {
+  height: 8px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.progressFill {
+  height: 100%;
+  background: #22c55e;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.group {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+.groupHeader {
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.groupTitle {
+  font-size: 1rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.groupCount {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.groupList {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.medicineRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.medicineInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.medicineName {
+  font-weight: 600;
+  color: #0f172a;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.medicineMeta {
+  color: #64748b;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.dot {
+  opacity: 0.6;
+}
+
+.medicineActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.status {
+  text-transform: capitalize;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.pending {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.taken {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.skipped {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.takeButton,
+.skipButton {
+  border: none;
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.takeButton {
+  background: #22c55e;
+  color: #ffffff;
+}
+
+.skipButton {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.empty {
+  color: #64748b;
+  margin-top: 0.5rem;
+}
+
+.skeletonRow {
+  height: 24px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f1f5f9, #e2e8f0, #f1f5f9);
+  animation: pulse 1.6s infinite;
+  margin-bottom: 0.6rem;
+}
+
+.error {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.retryButton {
+  border: none;
+  background: #111827;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 1.25rem;
+  }
+
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .percentage {
+    font-size: 1.4rem;
+  }
+
+  .medicineRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .medicineActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 375px) {
+  .card {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .percentage {
+    font-size: 1.25rem;
+  }
+
+  .medicineName {
+    font-size: 0.9rem;
+  }
+
+  .medicineMeta {
+    font-size: 0.8rem;
+  }
+}

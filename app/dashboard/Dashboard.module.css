@@ -1,3 +1,104 @@
+.dashboardContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.pageHeader {
+  margin-bottom: 1.5rem;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 2rem;
+  color: #0f172a;
+}
+
+.pageSubtitle {
+  margin: 0.4rem 0 0;
+  color: #64748b;
+}
+
+.topRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+.topRow > * {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.bottomRow {
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 1023px) {
+  .topRow {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboardContainer {
+    padding: 1rem;
+  }
+
+  .pageHeader {
+    margin-bottom: 1rem;
+  }
+
+  .topRow {
+    gap: 0.875rem;
+  }
+
+  .bottomRow {
+    margin-top: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboardContainer {
+    padding: 0.75rem;
+  }
+
+  .pageTitle {
+    font-size: 1.5rem;
+  }
+
+  .pageSubtitle {
+    font-size: 0.875rem;
+  }
+
+  .topRow,
+  .bottomRow {
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .dashboardContainer {
+    padding: 0.5rem;
+  }
+
+  .pageTitle {
+    font-size: 1.25rem;
+  }
+
+  .pageSubtitle {
+    font-size: 0.8rem;
+  }
+
+  .topRow,
+  .bottomRow {
+    gap: 0.5rem;
+  }
+}
+
+/* Calendar styles used by /calendar page */
 .calendarContainer :global(.fc) {
   font-family: inherit;
   width: 100%;

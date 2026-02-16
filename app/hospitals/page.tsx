@@ -41,6 +41,19 @@ export default function HospitalsPage() {
   const didMountRef = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Load filters from URL parameters on mount
+  useEffect(() => {
+    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    const district = params.get('district') || '';
+    const name = params.get('name') || '';
+    const speciality = params.get('speciality') || '';
+
+    if (district || name || speciality) {
+      setPendingFilters({ name, district, speciality });
+      setAppliedFilters({ name, district, speciality });
+    }
+  }, []);
+
   const fetchHospitals = useCallback(async (options?: {
     pageOverride?: number;
     silent?: boolean;

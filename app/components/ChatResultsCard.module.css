@@ -1,0 +1,284 @@
+/* app/components/ChatResultsCard.module.css */
+
+.resultsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.resultsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.noResults {
+  padding: 2rem;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}
+
+/* Hospitals */
+.hospitalsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.hospitalCard {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 3px solid #667eea;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.hospitalCard:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateX(2px);
+}
+
+.hospitalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.hospitalHeader h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.district {
+  background: #e8f0fd;
+  color: #667eea;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.hospitalInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.hospitalInfo p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Medicines */
+.medicinesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.medicineCard {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 3px solid #667eea;
+  transition: all 0.2s ease;
+}
+
+.medicineCard:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateX(2px);
+}
+
+.medicineHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.medicineHeader h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.occurrence {
+  background: #f0ede8;
+  color: #8b4513;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.dosage {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Pharmacy Medicines */
+.pharmList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pharmCard {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 3px solid #667eea;
+  transition: all 0.2s ease;
+}
+
+.pharmCard:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateX(2px);
+}
+
+.pharmHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pharmHeader h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.quantity {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Confirmations */
+.confirmationsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.confirmationCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  background: white;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  border-left: 3px solid #ccc;
+  transition: all 0.2s ease;
+}
+
+.confirmationCard.taken {
+  border-left-color: #4caf50;
+  background: #f1f8f6;
+}
+
+.confirmationCard.skipped {
+  border-left-color: #ff9800;
+  background: #fff3e0;
+}
+
+.date {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.confirmationCard.taken .statusBadge {
+  background: #c8e6c9;
+  color: #1b5e20;
+}
+
+.confirmationCard.skipped .statusBadge {
+  background: #ffe0b2;
+  color: #e65100;
+}
+
+/* View All Button */
+.viewAllButton {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #667eea;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.viewAllButton:hover {
+  background: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Results Summary */
+.resultsSummary {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #999;
+  text-align: center;
+  padding-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .resultsContainer {
+    padding: 0.75rem;
+  }
+
+  .hospitalCard,
+  .medicineCard,
+  .pharmCard {
+    padding: 0.75rem;
+  }
+
+  .hospitalHeader,
+  .medicineHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .district,
+  .occurrence,
+  .quantity {
+    align-self: flex-start;
+  }
+}

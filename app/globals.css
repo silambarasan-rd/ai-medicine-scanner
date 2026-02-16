@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+* {
+  box-sizing: border-box;
+}
+
+html {
+  overflow-x: hidden;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -41,4 +49,31 @@ button,
 a,
 [role='button'] {
   cursor: pointer;
+}
+
+/* App Layout with Sidebar */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  padding-top: 64px; /* navbar height */
+}
+
+.main-content {
+  flex: 1;
+  transition: margin-left 0.3s ease;
+  min-width: 0; /* Prevent flex overflow */
+}
+
+/* Desktop - content shifted for sidebar */
+@media (min-width: 1024px) {
+  .main-content.sidebar-open {
+    margin-left: 260px; /* sidebar width */
+  }
+}
+
+/* Mobile - no margin, sidebar overlays */
+@media (max-width: 1023px) {
+  .main-content {
+    margin-left: 0;
+  }
 }
