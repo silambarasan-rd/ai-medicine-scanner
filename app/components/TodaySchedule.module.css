@@ -4,6 +4,8 @@
   border: 1px solid #e5e7eb;
   padding: 1.5rem;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .header {
@@ -66,6 +68,8 @@
 
 .groupTitle {
   font-size: 1rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .groupCount {
@@ -100,6 +104,8 @@
 .medicineName {
   font-weight: 600;
   color: #0f172a;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .medicineMeta {
@@ -207,13 +213,48 @@
 }
 
 @media (max-width: 768px) {
+  .card {
+    padding: 1.25rem;
+  }
+
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .percentage {
+    font-size: 1.4rem;
+  }
+
   .medicineRow {
     flex-direction: column;
     align-items: flex-start;
+    gap: 0.75rem;
   }
 
   .medicineActions {
     width: 100%;
     justify-content: space-between;
+  }
+}
+
+@media (max-width: 375px) {
+  .card {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .percentage {
+    font-size: 1.25rem;
+  }
+
+  .medicineName {
+    font-size: 0.9rem;
+  }
+
+  .medicineMeta {
+    font-size: 0.8rem;
   }
 }
