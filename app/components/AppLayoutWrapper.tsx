@@ -15,12 +15,12 @@ export default function AppLayoutWrapper({ children }: AppLayoutWrapperProps) {
 
   const isAuthRoute = !pathname || pathname.startsWith('/login') || pathname.startsWith('/auth');
 
-  if (isAuthRoute) {
-    return <>{children}</>;
-  }
-
   // Set initial sidebar state based on screen size
   useEffect(() => {
+    if (isAuthRoute) {
+      return;
+    }
+
     const handleResize = () => {
       if (window.innerWidth < 1024) {
         setSidebarOpen(false);
@@ -35,7 +35,11 @@ export default function AppLayoutWrapper({ children }: AppLayoutWrapperProps) {
     // Listen to resize events
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [isAuthRoute]);
+
+  if (isAuthRoute) {
+    return <>{children}</>;
+  }
 
   const toggleSidebar = () => {
     setSidebarOpen(prev => !prev);
