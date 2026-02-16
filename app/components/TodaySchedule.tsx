@@ -232,7 +232,7 @@ export default function TodaySchedule() {
                       <span className={`${styles.status} ${styles[medicine.status]}`}>
                         {medicine.status}
                       </span>
-                      {medicine.status === 'pending' ? (
+                      {medicine.status === 'pending' && new Date(medicine.scheduled_datetime).getTime() <= Date.now() ? (
                         <div className={styles.actionButtons}>
                           <button
                             className={styles.takeButton}
