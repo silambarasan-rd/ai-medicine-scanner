@@ -14,6 +14,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUtensils, faCircle, faCircleCheck, faSlash, faCalendarDays, faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { setupServiceWorkerListener } from '../utils/pushNotifications';
+import { formatDateTimeInTimeZone, getTimeZoneTimestampMs, getTimeZoneTimestampMsFromUtcString } from '../utils/timezone';
 
 interface Medicine {
   id: string;
@@ -472,7 +473,7 @@ function CalendarContent() {
               </span>
             </h2>
             <div className="space-y-3 text-charcoal-blue mb-6">
-              <p><span className="font-semibold">Date & Time:</span> {new Date(selectedEvent.start).toLocaleString()}</p>
+              <p><span className="font-semibold">Date & Time:</span> {formatDateTimeInTimeZone(selectedEvent.start)}</p>
               {selectedEvent.extendedProps.medicine.dosage && (
                 <p><span className="font-semibold">Dosage:</span> {selectedEvent.extendedProps.medicine.dosage}</p>
               )}
@@ -486,7 +487,7 @@ function CalendarContent() {
                 </p>
               )}
             </div>
-            {new Date(selectedEvent.start).getTime() <= Date.now() && (
+            {getTimeZoneTimestampMsFromUtcString(selectedEvent.start) <= getTimeZoneTimestampMs(new Date()) && (
               <div className="mb-6 space-y-3">
                 <div>
                   <p className="text-sm font-semibold text-charcoal-blue">Update status</p>

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import styles from './ConfirmationModal.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCapsules, faUtensils, faCircle, faSlash } from '@fortawesome/free-solid-svg-icons';
+import { formatDateTimeInTimeZone } from '../utils/timezone';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -52,20 +53,6 @@ export default function ConfirmationModal({
     }
   };
 
-  const formatDateTime = (datetime: string) => {
-    const date = new Date(datetime);
-
-    return date.toLocaleString('en-IN', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'Asia/Kolkata'
-    });
-  };
-
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -95,7 +82,7 @@ export default function ConfirmationModal({
 
           <div className={styles.scheduledInfo}>
             <p className={styles.scheduledTime}>
-              <strong>Date & Time:</strong> {formatDateTime(scheduledDatetime)}
+              <strong>Date & Time:</strong> {formatDateTimeInTimeZone(scheduledDatetime)}
             </p>
             {mealTiming && (
               <div className={styles.mealBadge}>

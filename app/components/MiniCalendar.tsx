@@ -6,6 +6,7 @@ import 'react-calendar/dist/Calendar.css';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
 import styles from './MiniCalendar.module.css';
+import { getTimeZoneDateKey, getTimeZoneTimestampMs, normalizeUtcDateKeyToTimeZone } from '../utils/timezone';
 
 type CalendarDay = {
   date: string;
@@ -14,13 +15,6 @@ type CalendarDay = {
   skipped: number;
   percentage: number;
   status: 'complete' | 'partial' | 'none';
-};
-
-const formatDateKey = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
 };
 
 export default function MiniCalendar() {
@@ -40,7 +34,11 @@ export default function MiniCalendar() {
         throw new Error('Failed to load calendar data');
       }
       const payload = (await response.json()) as { days: CalendarDay[] };
-      setCalendarDays(payload.days || []);
+      const normalizedDays = (payload.days || []).map((day) => ({
+        ...day,
+        date: normalizeUtcDateKeyToTimeZone(day.date),
+      }));
+      setCalendarDays(normalizedDays);
     } catch (err) {
       console.error('Error loading calendar data:', err);
       setError('Unable to load calendar data.');
@@ -55,7 +53,8 @@ export default function MiniCalendar() {
 
   const dayMap = useMemo(() => new Map(calendarDays.map((day) => [day.date, day])), [calendarDays]);
 
-  const todayKey = formatDateKey(new Date());
+  const todayKey = getTimeZoneDateKey(new Date());
+  const nowIstMs = getTimeZoneTimestampMs(new Date());
 
   return (
     <section className={styles.card}>
@@ -71,7 +70,7 @@ export default function MiniCalendar() {
         tileDisabled={() => false}
         tileClassName={({ date, view }) => {
           if (view !== 'month') return null;
-          const key = formatDateKey(date);
+          const key = getTimeZoneDateKey(date);
           const day = dayMap.get(key);
           const classes = [styles.tile];
           if (day?.status) {
@@ -80,14 +79,14 @@ export default function MiniCalendar() {
           if (key === todayKey) {
             classes.push(styles.today);
           }
-          if (date > new Date()) {
+          if (getTimeZoneTimestampMs(date) > nowIstMs) {
             classes.push(styles.future);
           }
           return classes.join(' ');
         }}
         tileContent={({ date, view }) => {
           if (view !== 'month') return null;
-          const key = formatDateKey(date);
+          const key = getTimeZoneDateKey(date);
           const day = dayMap.get(key);
           let title = 'No medicines scheduled';
           if (day) {

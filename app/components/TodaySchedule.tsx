@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { getTimeZoneTimestampMs, getTimeZoneTimestampMsFromUtcString } from '../utils/timezone';
 import styles from './TodaySchedule.module.css';
 
 type ScheduleStatus = 'pending' | 'taken' | 'skipped';
@@ -176,6 +177,8 @@ export default function TodaySchedule() {
     );
   }
 
+  const nowIstMs = getTimeZoneTimestampMs(new Date());
+
   return (
     <section className={styles.card}>
       <div className={styles.header}>
@@ -232,7 +235,8 @@ export default function TodaySchedule() {
                       <span className={`${styles.status} ${styles[medicine.status]}`}>
                         {medicine.status}
                       </span>
-                      {medicine.status === 'pending' && new Date(medicine.scheduled_datetime).getTime() <= Date.now() ? (
+                      {medicine.status === 'pending' &&
+                      getTimeZoneTimestampMsFromUtcString(medicine.scheduled_datetime) <= nowIstMs ? (
                         <div className={styles.actionButtons}>
                           <button
                             className={styles.takeButton}
